@@ -256,14 +256,28 @@ class YahooAuth:
         return {"Authorization": f"Bearer {self.access_token()}"}
 
 
-def authorize_url(client_id: str, redirect_uri: str, scope: str = "fspt-w") -> str:
+READ_SCOPE = "fspt-r"
+WRITE_SCOPE = "fspt-w"
+SCOPES = (READ_SCOPE, WRITE_SCOPE)
+
+
+def authorize_url(client_id: str, redirect_uri: str, scope: str = READ_SCOPE) -> str:
     """The consent URL.
 
-    ``fspt-w`` asks for write. Asking is not enough on its own: Read/Write must also be
-    enabled on the app in YDN, or Yahoo issues a read-only token with no error at all.
+    The default is read, because read is what a new app actually has. Yahoo grants write
+    only after reviewing an application, and asking for ``fspt-w`` before that is granted
+    does not degrade to read -- the whole handshake fails with ``error=invalid_scope`` and
+    you end up with no token at all. Read first, then opt into write once it is granted, by
+    setting FF_YAHOO_SCOPE. Enabling Read/Write on the app in YDN is also required; with
+    only one of the two, Yahoo issues a read-only token and says nothing. (BUG-004.)
     """
     from urllib.parse import urlencode
 
+    if scope not in SCOPES:
+        raise ConfigError(
+            f"Unknown Yahoo scope {scope!r}. Use {READ_SCOPE!r} for read, or {WRITE_SCOPE!r} "
+            f"once Yahoo has granted write access. There is no combined scope string."
+        )
     params = urlencode(
         {
             "client_id": client_id,
@@ -273,3 +287,56 @@ def authorize_url(client_id: str, redirect_uri: str, scope: str = "fspt-w") -> s
         }
     )
     return f"{AUTH_URL}?{params}"
+
+
+@dataclass(frozen=True, slots=True)
+class CallbackResult:
+    """What came back on the redirect: a code, a refusal, or neither.
+
+    This lives here rather than in the script because it is the part worth testing and
+    scripts/ is not importable. Yahoo puts its refusals in the query string, so a listener
+    that only looks for ``code`` cannot tell "denied" from "still waiting" -- it reports a
+    guess and then hangs forever on a code that is never coming. (BUG-005.)
+    """
+
+    code: str | None = None
+    error: str | None = None
+    description: str | None = None
+
+    @property
+    def is_final(self) -> bool:
+        """Whether this settles the handshake. A stray favicon request does not."""
+        return self.code is not None or self.error is not None
+
+    @property
+    def message(self) -> str:
+        if self.code is not None:
+            return "Authorized. You can close this tab."
+        if self.error is None:
+            return "Not the authorization callback. Still waiting."
+        if self.error == "invalid_scope":
+            return (
+                "Yahoo refused the requested scope (invalid_scope).\n\n"
+                "This means write access has not been granted to your app. Write is granted "
+                "only after Yahoo reviews an application, and asking for it early fails the "
+                "whole handshake instead of falling back to read.\n\n"
+                "Fix: set FF_YAHOO_SCOPE=fspt-r in your environment file and run `make auth` "
+                "again. Read access is all the recommendation half of the app needs. Switch "
+                "it to fspt-w once Yahoo approves write."
+            )
+        detail = f": {self.description}" if self.description else ""
+        return (
+            f"Yahoo refused the authorization ({self.error}{detail}).\n\n"
+            f"Nothing was saved. See docs/YAHOO_SETUP.md."
+        )
+
+
+def parse_callback(query: str) -> CallbackResult:
+    """Read the redirect query string. Never raises -- the browser gets the message."""
+    from urllib.parse import parse_qs
+
+    params = parse_qs(query)
+    code = params.get("code", [None])[0]
+    error = params.get("error", [None])[0]
+    description = params.get("error_description", [None])[0]
+    return CallbackResult(code=code, error=error, description=description)

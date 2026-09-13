@@ -15,6 +15,7 @@ from ff.adapters.yahoo.auth import (
     YahooAuth,
     YahooToken,
     authorize_url,
+    parse_callback,
     refresh_token,
 )
 from ff.core.clock import FrozenClock
@@ -230,7 +231,64 @@ class TestYahooAuth:
         assert auth.headers() == {"Authorization": "Bearer abc"}
 
 
-def test_authorize_url_requests_write_scope() -> None:
-    url = authorize_url("cid", "https://localhost:8080/callback")
-    assert "scope=fspt-w" in url
-    assert "response_type=code" in url
+class TestScope:
+    """BUG-004: asking for a scope the app does not hold fails the whole handshake.
+
+    Yahoo grants write only after an application review, and until then `fspt-w` is
+    rejected outright with `error=invalid_scope` -- no token, no read access, nothing. So
+    the default is the scope that works today, and write is opted into once granted.
+    """
+
+    def test_the_default_scope_is_read(self) -> None:
+        url = authorize_url("cid", "https://localhost:8080/callback")
+        assert "scope=fspt-r" in url
+        assert "response_type=code" in url
+
+    def test_write_can_be_asked_for_explicitly(self) -> None:
+        url = authorize_url("cid", "https://localhost:8080/callback", scope="fspt-w")
+        assert "scope=fspt-w" in url
+
+    def test_an_unknown_scope_is_refused_before_the_round_trip(self) -> None:
+        """A typo here costs a browser round trip and an opaque Yahoo error page."""
+        with pytest.raises(ConfigError, match="fspt-r"):
+            authorize_url("cid", "https://localhost:8080/callback", scope="fspt-rw")
+
+
+class TestCallbackParsing:
+    """BUG-005: the callback reported a guess instead of what Yahoo actually said.
+
+    Yahoo returns its refusal in the query string. The listener only looked for `code`,
+    so every failure rendered the same wrong sentence about the redirect URI -- and then
+    the script hung waiting for a code that was never coming.
+    """
+
+    def test_a_successful_callback_carries_the_code(self) -> None:
+        result = parse_callback("code=abc123&state=xyz")
+        assert result.code == "abc123"
+        assert result.error is None
+        assert result.is_final
+
+    def test_yahoo_error_is_read_out_of_the_query(self) -> None:
+        result = parse_callback("error=invalid_scope&error_description=invalid+scope")
+        assert result.code is None
+        assert result.error == "invalid_scope"
+        assert result.description == "invalid scope"
+        assert result.is_final
+
+    def test_the_invalid_scope_message_names_the_actual_cause(self) -> None:
+        """The one failure we can diagnose outright, so it should not read as a mystery."""
+        result = parse_callback("error=invalid_scope&error_description=invalid+scope")
+        assert "write access" in result.message
+        assert "FF_YAHOO_SCOPE" in result.message
+
+    def test_an_unknown_error_is_repeated_verbatim(self) -> None:
+        result = parse_callback("error=access_denied&error_description=user+said+no")
+        assert "access_denied" in result.message
+        assert "user said no" in result.message
+
+    def test_an_empty_callback_is_not_final(self) -> None:
+        """A favicon request is not the authorization callback. Keep listening."""
+        result = parse_callback("")
+        assert not result.is_final
+        assert result.code is None
+        assert result.error is None

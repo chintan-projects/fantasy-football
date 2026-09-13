@@ -24,32 +24,30 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend" / "src"))
 
 from ff.adapters.yahoo.auth import (  # noqa: E402
+    CallbackResult,
     TokenStore,
     YahooAuth,
     authorize_url,
     exchange_code,
+    parse_callback,
 )
 from ff.adapters.yahoo.client import YahooClient  # noqa: E402
 from ff.core.cache import FileCache  # noqa: E402
 from ff.core.config import settings  # noqa: E402
 from ff.core.errors import FFError  # noqa: E402
 
-code_holder: dict[str, str] = {}
+result_holder: dict[str, CallbackResult] = {}
 
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802 - required by BaseHTTPRequestHandler
-        query = urllib.parse.urlparse(self.path).query
-        params = urllib.parse.parse_qs(query)
-        if "code" in params:
-            code_holder["code"] = params["code"][0]
-            body = b"Authorized. You can close this tab."
-        else:
-            body = b"No code in the callback. Check the redirect URI on your Yahoo app."
+        result = parse_callback(urllib.parse.urlparse(self.path).query)
+        if result.is_final:
+            result_holder["result"] = result
         self.send_response(200)
-        self.send_header("Content-Type", "text/plain")
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
         self.end_headers()
-        self.wfile.write(body)
+        self.wfile.write(result.message.encode("utf-8"))
 
     def log_message(self, *_: object) -> None:
         pass
@@ -81,16 +79,20 @@ def self_signed_cert() -> tuple[str, str]:
     return str(cert), str(key)
 
 
-def wait_for_code(redirect_uri: str) -> str:
+def wait_for_callback(redirect_uri: str) -> CallbackResult:
+    """Serve until Yahoo says something definite -- a code or a refusal.
+
+    Waiting only for a code meant a refusal hung here forever. (BUG-005.)
+    """
     cert, key = self_signed_cert()
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.load_cert_chain(cert, key)
     port = urllib.parse.urlparse(redirect_uri).port or 8080
     server = HTTPServer(("localhost", port), Handler)
     server.socket = context.wrap_socket(server.socket, server_side=True)
-    while "code" not in code_holder:
+    while "result" not in result_holder:
         server.handle_request()
-    return code_holder["code"]
+    return result_holder["result"]
 
 
 def main() -> int:
@@ -100,14 +102,20 @@ def main() -> int:
         print("Walkthrough: docs/YAHOO_SETUP.md")
         return 2
 
-    # fspt-w asks for write. Asking is not enough on its own: Read/Write must ALSO be
-    # enabled on the app in YDN, or Yahoo issues a read-only token with no error at all.
-    url = authorize_url(cfg.yahoo_client_id, cfg.yahoo_redirect_uri)
+    # Read is the default because it is what a new app holds. Write needs both an approved
+    # Yahoo access application AND Read/Write enabled on the app in YDN -- with only one of
+    # the two, Yahoo issues a read-only token and says nothing.
+    url = authorize_url(cfg.yahoo_client_id, cfg.yahoo_redirect_uri, scope=cfg.yahoo_scope)
+    print(f"Requesting scope {cfg.yahoo_scope}.")
     print("Opening Yahoo consent page. Accept the self-signed certificate warning.\n")
     print(url, "\n")
     webbrowser.open(url)
 
-    code = wait_for_code(cfg.yahoo_redirect_uri)
+    result = wait_for_callback(cfg.yahoo_redirect_uri)
+    if result.code is None:
+        print(result.message)
+        return 1
+    code = result.code
 
     try:
         token = exchange_code(

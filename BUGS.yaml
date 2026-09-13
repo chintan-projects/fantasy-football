@@ -1,5 +1,37 @@
 # Every TODO in code needs an entry here. Newest first.
 bugs:
+  - id: BUG-005
+    title: The OAuth callback reported a guess, then hung forever
+    found: 2026-09-13
+    status: fixed
+    detail: >
+      The local listener only looked for a "code" parameter. Yahoo puts its refusals in the
+      same query string, so every failure rendered the same wrong sentence -- "No code in
+      the callback, check the redirect URI" -- when the redirect URI was fine and the real
+      answer (error=invalid_scope) was sitting two parameters away. Worse, the wait loop
+      spun until the user killed it, because a code was never coming. Parsing now lives in
+      a tested pure function that reads Yahoo's error, renders it, and ends the wait.
+    severity: medium
+    fixed_in: >
+      backend/src/ff/adapters/yahoo/auth.py (parse_callback, CallbackResult),
+      scripts/yahoo_auth.py, regression tests in tests/test_yahoo_auth.py
+
+  - id: BUG-004
+    title: make auth asked for write scope and so got no token at all
+    found: 2026-09-13
+    status: fixed
+    detail: >
+      authorize_url hardcoded fspt-w. Yahoo grants write only after reviewing an access
+      application, and until then it rejects the scope outright with error=invalid_scope --
+      it does not quietly downgrade to read. So an app waiting on review could not read
+      either, which is the 80% of the product that needs no approval. The scope is now
+      configurable via FF_YAHOO_SCOPE and defaults to fspt-r; an unrecognised value raises
+      before the browser round trip rather than after it.
+    severity: high
+    fixed_in: >
+      backend/src/ff/adapters/yahoo/auth.py, backend/src/ff/core/config.py,
+      scripts/yahoo_auth.py, regression tests in tests/test_yahoo_auth.py
+
   - id: BUG-003
     title: A blank value in the environment file stops the whole app from starting
     found: 2026-09-13
