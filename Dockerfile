@@ -21,7 +21,6 @@ COPY backend/pyproject.toml backend/uv.lock ./
 RUN uv sync --frozen --no-install-project --no-dev
 
 COPY backend/src ./src
-COPY backend/README.md ./README.md
 RUN uv sync --frozen --no-dev
 
 # The volume mount point. Fly mounts over it at runtime; creating it here keeps the image
