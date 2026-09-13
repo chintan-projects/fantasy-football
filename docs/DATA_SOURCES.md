@@ -49,8 +49,18 @@ In-season cadence:
 
 **Injuries: the docs are wrong.** Verified directly — `injuries_2026.parquet` returns 200.
 Columns include `report_primary_injury`, `report_status`, and crucially
-`practice_primary_injury`, `practice_secondary_injury`, `practice_status` (Full/Limited/DNP).
+`practice_primary_injury`, `practice_secondary_injury`, `practice_status`.
 Coverage is partial (182 rows in Week 1 vs a typical 400–600) — treat as incomplete.
+
+**Corrected 2026-09-12, by probing.** This section was also wrong about the values:
+
+- `practice_status` is **not** `Full/Limited/DNP`. The real strings are the full phrases:
+  "Full Participation in Practice", "Limited Participation in Practice",
+  "Did Not Participate In Practice". `adapters/nflverse.normalize_practice_status` maps them.
+- `report_status` is **frequently null**. A player can be on the report with a practice note
+  and no game designation. Values seen in Week 1: Out, Doubtful, Questionable, null.
+- Partial coverage has a consequence worth stating: **a player with no row is "nothing
+  reported", not "healthy."** The adapter returns an absent key, never a clean bill.
 
 ### nflverse `games.csv` — free historical odds and weather
 
@@ -74,12 +84,25 @@ Returns `competitions[].odds[]` (DraftKings: `spread`, `overUnder`), `event.weat
 Fantasy projections:
 ```
 GET https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/2026/segments/0/leaguedefaults/3?view=kona_player_info
-Header: X-Fantasy-Filter: {"players":{"limit":2000}}
+Header: X-Fantasy-Filter: {"players":{"limit":800,"sortPercOwned":{"sortAsc":false,"sortPriority":1}}}
 ```
 The decoder ring: **`statSourceId: 0` = actual, `statSourceId: 1` = ESPN projection.**
 `statSplitTypeId: 1` = single week. `appliedTotal` is the fantasy-scored value.
 `leaguedefaults/3` = standard PPR. The `X-Fantasy-Filter` header is **mandatory** to get past
 the default result cap.
+
+**Corrected 2026-09-12, by probing.** Two things this section used to get wrong:
+
+- **A bare `limit` is now rejected.** `{"players":{"limit":2000}}` returns
+  `400 {"messages":["Filter: Limit request must be accompanied by a sort"]}`. A sort key has
+  to accompany it. `sortPercOwned` works and needs no season-coded value; `sortDraftRanks`
+  and `sortAppliedStatTotal` also work.
+- **`scoringPeriodId` alone is not enough to select a week.** One response carries both this
+  season's and last season's weeks under the same `scoringPeriodId`. Filter on `seasonId`
+  too, or you will read a 2025 projection as a 2026 one.
+
+`defaultPositionId`: 1 QB, 2 RB, 3 WR, 4 TE, 5 K, 16 D/ST. Defenses are named
+"<Nickname> D/ST" with a negative `id`, so they join to other sources on team, not on name.
 
 **Treat all ESPN endpoints as a scrape.** Undocumented, unversioned, no contract, no
 deprecation notice. ESPN has silently changed hosts before (`fantasy.espn.com` →

@@ -1,6 +1,6 @@
 # What is done, what is next. Claude reads this at session start.
 project: fantasy-football-copilot
-updated: 2026-09-13
+updated: 2026-09-12
 
 milestones:
   - id: M0
@@ -10,22 +10,36 @@ milestones:
 
   - id: M1
     name: Yahoo read path
-    status: not_started
-    blocked_by: [yahoo-api-access]
+    status: done
+    notes: >
+      Code complete and tested, but not yet run against a live Yahoo league -- there is no
+      token on this machine. Fixtures are hand-built from documented shapes, not recorded.
+      See open question yahoo-api-access. Everything else in M1 is verified.
     tasks:
-      - Apply for API access at sports.yahoo.com/developer/access (READ/WRITE in the notes)
-      - OAuth flow with a local HTTPS listener, token refresh at 55 minutes
-      - League settings, roster by week, matchup, free agents
-      - Resolve the current NFL game_id at runtime -- never hardcode it
+      - done: OAuth over a local HTTPS listener; make auth ends with a real read call
+      - done: Token refresh on age at 55 minutes, not reactively on a 401
+      - done: League settings, roster by week, matchup, free agents with paging
+      - done: game_id resolved from GET /game/nfl at runtime, never hardcoded
+      - done: status_code checked before every parse; HTTP 999 is a throttle, not JSON
+      - done: All Yahoo calls serialized behind one lock; per-source TTL cache
+      - todo: Apply for API access at sports.yahoo.com/developer/access (READ/WRITE in notes)
+      - todo: Re-record the Yahoo fixtures against a live league once a token exists
 
   - id: M2
     name: Projections and blending
-    status: not_started
+    status: done
+    notes: >
+      ESPN and nflverse are verified against their live endpoints. FantasyPros is not --
+      it needs a paid key. Aleatoric variance still comes from the position prior alone;
+      per-player game logs are not wired in yet.
     tasks:
-      - ESPN kona_player_info adapter with schema validation on every fetch
-      - FantasyPros adapter (ECR mean plus std-dev -- the uncertainty input)
-      - Aleatoric variance from game logs, shrunk toward the position prior
-      - nflverse injuries via nflreadpy (NOT nfl_data_py, which is archived)
+      - done: ESPN kona_player_info adapter, schema validated on every fetch, never required
+      - done: FantasyPros adapter -- projections for the blend, rank_std for uncertainty
+      - done: nflverse injuries via nflreadpy (NOT nfl_data_py, which is archived)
+      - done: services/projections blends sources; one source raises in three places
+      - todo: Aleatoric variance from game logs, shrunk toward the position prior
+      - todo: Convert FantasyPros rank_std into a points SD (needs a rank-to-points curve)
+      - todo: Verify the FantasyPros response shapes against a real key
 
   - id: M3
     name: Lineup recommendation end to end
@@ -72,3 +86,26 @@ open_questions:
     question: Will Yahoo grant write access to a single-league personal app?
     impact: Decides whether M5 ships as an API integration or as the assisted fallback.
     next_step: Submit the access application. Nothing else unblocks it.
+
+  - id: yahoo-api-access
+    question: Does the read path work against a real Yahoo league?
+    impact: >
+      M1 is tested against fixtures built from documented shapes, not recordings. The
+      parsers are written to fail loudly on a surprise rather than silently, so the first
+      live call should say precisely what is wrong if anything is. Until then M1 is
+      "complete and untested against reality".
+    next_step: Create a Yahoo app, run `make auth`, then re-record tests/fixtures/yahoo/.
+
+  - id: fantasypros-key
+    question: Do the FantasyPros response shapes match what the adapter expects?
+    impact: >
+      FantasyPros is the required projection source and the only source of the expert
+      disagreement number. Its fixtures are hand-built; only the keyless 403 is recorded.
+    next_step: Buy a key ($8.99/mo), run one fetch, re-record both fixtures.
+
+  - id: sleeper-fixtures
+    question: Should adapters/sleeper.py get fixtures like every other adapter?
+    impact: >
+      It is the week oracle, so the read path depends on it, but it predates M1 and has no
+      tests and no malformed fixture. The architecture rule says every adapter has both.
+    next_step: One small commit. Deliberately left out of M1/M2 to keep the scope honest.
