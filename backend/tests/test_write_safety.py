@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import time
+from pathlib import Path
 
 import pytest
 
 from ff.adapters.base import Approval
+from ff.adapters.store import Store
 from ff.adapters.yahoo.executors import (
     DryRunExecutor,
     check_approval,
@@ -53,12 +55,18 @@ def test_approval_expires() -> None:
         check_approval(approval_for(PLAN.assignments, age_s=7 * 3600), PLAN.assignments, 3)
 
 
-def test_approval_is_single_use() -> None:
-    store = ApprovalStore()
-    approval = store.issue(PLAN.assignments, week=3)
-    store.consume(approval.approval_id)
+def test_approval_is_single_use(tmp_path: Path) -> None:
+    approvals = ApprovalStore(Store(tmp_path / "ff.db"))
+    approval = approvals.issue(PLAN.assignments, week=3)
+    approvals.consume(approval.approval_id)
     with pytest.raises(ApprovalRequired):
-        store.consume(approval.approval_id)
+        approvals.consume(approval.approval_id)
+
+
+def test_an_unknown_approval_is_not_an_approval(tmp_path: Path) -> None:
+    approvals = ApprovalStore(Store(tmp_path / "ff.db"))
+    with pytest.raises(ApprovalRequired):
+        approvals.consume("made-up")
 
 
 def test_over_budget_bid_is_rejected_not_clamped() -> None:

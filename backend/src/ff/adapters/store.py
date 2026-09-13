@@ -42,7 +42,7 @@ from ff.core.logging import get_logger
 
 log = get_logger(__name__)
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 #: Created on first connect. No migration framework until there is a second version to
 #: migrate to -- CLAUDE.md 2.0. ``schema_version`` exists so that day is not archaeology.
@@ -114,6 +114,11 @@ CREATE TABLE IF NOT EXISTS approvals (
     created_at   REAL NOT NULL,
     approved_by  TEXT NOT NULL,
     summary      TEXT NOT NULL DEFAULT '',
+    -- The approved thing itself, verbatim. Propose and confirm are two separate tool
+    -- calls, so the payload has to survive between them somewhere -- and re-deriving it
+    -- at confirm time would defeat the point: the bid could have moved, and the user
+    -- would be confirming a number they never saw.
+    payload      TEXT NOT NULL DEFAULT '{}',
     spent_at     REAL
 );
 
@@ -357,12 +362,17 @@ class Store:
 
     # ---- approvals ---------------------------------------------------------------
 
-    def issue_approval(self, approval: Approval, summary: str = "") -> None:
+    def issue_approval(
+        self,
+        approval: Approval,
+        summary: str = "",
+        payload: dict[str, Any] | None = None,
+    ) -> None:
         with self._conn() as conn:
             conn.execute(
                 "INSERT INTO approvals "
-                "(approval_id, payload_hash, week, created_at, approved_by, summary) "
-                "VALUES (?, ?, ?, ?, ?, ?)",
+                "(approval_id, payload_hash, week, created_at, approved_by, summary, payload) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (
                     approval.approval_id,
                     approval.payload_hash,
@@ -370,8 +380,20 @@ class Store:
                     approval.created_at_epoch,
                     approval.approved_by,
                     summary,
+                    json.dumps(payload or {}, default=str),
                 ),
             )
+
+    def approval_payload(self, approval_id: str) -> dict[str, Any]:
+        """The exact thing that was approved. Empty dict if the approval is unknown."""
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT payload FROM approvals WHERE approval_id = ?", (approval_id,)
+            ).fetchone()
+        if row is None:
+            return {}
+        loaded: dict[str, Any] = json.loads(row["payload"])
+        return loaded
 
     def consume_approval(self, approval_id: str) -> Approval:
         """Single use, enforced by the database rather than by a set in memory.

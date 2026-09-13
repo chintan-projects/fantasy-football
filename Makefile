@@ -17,7 +17,7 @@ test: ## Run the test suite
 
 check: ## Lint, format check and type check everything
 	cd backend && uv run ruff check src tests && uv run ruff format --check src tests
-	cd backend && uv run mypy src/ff/domain src/ff/services
+	cd backend && uv run mypy src/ff/domain src/ff/services src/ff/api
 	cd frontend && npm run lint
 
 fix: ## Auto-format and auto-fix

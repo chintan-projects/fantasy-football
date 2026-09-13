@@ -60,8 +60,29 @@ class Settings(BaseSettings):
     monte_carlo_draws: int = 20_000
     random_seed: int | None = None
 
-    database_url: str = "sqlite:///./ff.db"
+    # Where the judgment store lives. On Fly this is the mounted volume; locally it is a
+    # file beside the repo. A path, not a URL: there is one database and it is SQLite, and
+    # a URL would imply a choice that does not exist.
+    database_path: str = str(REPO_ROOT / ".data" / "ff.db")
+
+    #: The NFL season. Not derived from the clock -- a date in early January belongs to the
+    #: previous season and getting that wrong silently reads the wrong year's projections.
+    season: int = 2026
     log_level: str = "INFO"
+
+    # --- MCP server ---
+    #: Public HTTPS base URL of this server, as entered in Claude's connector settings.
+    #: OAuth callbacks are built from it, so it must match exactly, path included.
+    mcp_base_url: str = "http://localhost:8000"
+    mcp_host: str = "127.0.0.1"
+    mcp_port: int = 8000
+    #: GitHub OAuth app credentials. See docs/ARCHITECTURE.md for why this is GitHub and
+    #: not a bearer token: Claude's static-header auth is beta and organization-scoped,
+    #: while OAuth with Dynamic Client Registration is supported out of the box.
+    github_client_id: str = ""
+    github_client_secret: str = ""
+    #: The single GitHub login allowed to use this server. One user, one league.
+    allowed_github_login: str = ""
     # ESPN and Sleeper: two independent forecasters, both free. Sleeper serves Rotowire's
     # numbers and ESPN serves its own, which is what makes the average worth taking.
     # FantasyPros is still implemented and still works -- it just costs $8.99/mo and buys

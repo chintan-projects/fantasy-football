@@ -14,12 +14,16 @@ from typing import Protocol, TypeVar
 from ff.core.errors import ConfigError
 from ff.domain.models import (
     BidRecommendation,
+    LeagueSettings,
     LineupPlan,
+    Matchup,
     Player,
     PlayerId,
+    Roster,
     SourceStatus,
     TransactionKey,
 )
+from ff.domain.opponent import WinningBid
 
 T = TypeVar("T")
 
@@ -47,6 +51,26 @@ class WriteResult:
     detail: str
     transaction_key: TransactionKey | None = None
     manual_url: str | None = None
+
+
+class LeagueReader(Protocol):
+    """The read surface of the league. ``YahooClient`` is the only implementation.
+
+    It exists as a Protocol rather than as the concrete class because the second caller is
+    real: ``tests/fakes.py`` replays recorded fixtures through exactly this interface, which
+    is what lets the server run end to end while Yahoo has our application under review.
+    Narrower than ``YahooClient`` on purpose -- nothing here can write.
+    """
+
+    def league_key(self) -> str: ...
+    def league_settings(self) -> LeagueSettings: ...
+    def roster(self, week: int, team_key: str | None = None) -> Roster: ...
+    def matchup(self, week: int, team_key: str | None = None) -> Matchup: ...
+    def free_agents(
+        self, position: str | None = None, limit: int = 50, status: str = "FA"
+    ) -> list[Player]: ...
+    def faab_balance(self, team_key: str | None = None) -> int: ...
+    def transactions(self, limit: int = 100) -> list[WinningBid]: ...
 
 
 class ProjectionSource(Protocol):
