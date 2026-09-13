@@ -18,7 +18,7 @@ from fakes import FIXTURE_WEEK, FixtureLeague, fixture_sources
 
 from ff.adapters.store import Store
 from ff.api.deps import Deps
-from ff.api.mcp import build_server
+from ff.api.mcp import build_server, http_app
 from ff.core.config import Settings
 
 READ_ONLY_TOOLS = {
@@ -313,3 +313,48 @@ def test_the_plan_and_its_own_verdicts_never_disagree(tmp_path: Path) -> None:
     started = {(s["slot"], s["player"]) for s in plan["starters"]}
     for decision in plan["contested_slots"]:
         assert (decision["slot"], decision["start"]) in started, decision
+
+
+def test_the_asgi_app_starts_and_serves_health(tmp_path: Path) -> None:
+    """Boot the real app the way uvicorn does.
+
+    Every other test here calls build_server directly, so none of them would have caught
+    the lifespan wiring being wrong -- and it was. A server that imports cleanly and then
+    fails on startup looks fine from the inside.
+    """
+    import httpx
+
+    deps = build(tmp_path)
+    app = http_app(deps, authenticate=False)
+
+    async def go() -> httpx.Response:
+        transport = httpx.ASGITransport(app=app)
+        async with (
+            app.router.lifespan_context(app),
+            httpx.AsyncClient(transport=transport, base_url="http://t") as client,
+        ):
+            return await client.get("/health")
+
+    response = asyncio.run(go())
+    assert response.status_code == 200
+    body = response.json()
+    assert body["ok"] is True
+    assert body["authenticated"] is False
+    assert body["write_executor"] == "dryrun"
+
+
+def test_the_mcp_endpoint_is_mounted_where_claude_expects_it(tmp_path: Path) -> None:
+    """/mcp, Streamable HTTP. A GET without the session handshake is refused, not 404."""
+    import httpx
+
+    app = http_app(build(tmp_path), authenticate=False)
+
+    async def go() -> httpx.Response:
+        transport = httpx.ASGITransport(app=app)
+        async with (
+            app.router.lifespan_context(app),
+            httpx.AsyncClient(transport=transport, base_url="http://t") as client,
+        ):
+            return await client.get("/mcp")
+
+    assert asyncio.run(go()).status_code != 404

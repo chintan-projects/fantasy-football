@@ -1,5 +1,48 @@
 # Every TODO in code needs an entry here. Newest first.
 bugs:
+  - id: BUG-010
+    title: The ASGI app could not start, and no test would have caught it
+    found: 2026-09-13
+    status: fixed
+    detail: >
+      The scheduler was attached with app.router.on_startup, which Starlette's Router does
+      not have when FastMCP builds the app -- the Streamable HTTP transport supplies its
+      own lifespan. uvicorn died on import. Every MCP test called build_server directly, so
+      the whole suite was green against a server that could not boot.
+      Fixed by wrapping FastMCP's own lifespan rather than replacing or bypassing it, which
+      also matters for a subtler reason: replacing it would leave the session manager
+      unstarted, and every tool call would fail on a server that looked healthy.
+    severity: high
+    fixed_in: >
+      backend/src/ff/api/mcp.py, regression tests
+      test_the_asgi_app_starts_and_serves_health and
+      test_the_mcp_endpoint_is_mounted_where_claude_expects_it in tests/test_mcp.py
+
+  - id: BUG-009
+    title: A projection source with no adapter was dropped silently, leaving one source
+    found: 2026-09-13
+    status: fixed
+    detail: >
+      Settings validates that at least two projection sources are named, counting strings.
+      build_deps then built only the names it recognised and discarded the rest. With
+      FF_PROJECTION_SOURCES naming espn and fantasypros -- which is what the local
+      environment file still held after FantasyPros was dropped -- validation passed, one
+      source was built, and /health cheerfully reported a single source.
+      One source is the state this project treats as a misconfiguration: the epistemic
+      spread in a Projection is cross-source disagreement, so with a single source it is
+      not measured, it is invented, and the number is a different quantity wearing the same
+      type. Now an unbuildable name raises ConfigError naming it and listing what is
+      available, and fewer than two surviving sources raises as well.
+      Found by booting the server and reading /health, not by a test.
+    severity: high
+    fixed_in: >
+      backend/src/ff/api/deps.py, regression tests in tests/test_config.py
+      (TestProjectionSourcesActuallyExist)
+    action_required: >
+      FF_PROJECTION_SOURCES in the local environment file still names fantasypros and the
+      server will now refuse to start until it names espn and sleeper. That file is on the
+      tool deny list, so it is a manual edit.
+
   - id: BUG-008
     title: The lineup plan contradicted its own per-slot explanation
     found: 2026-09-13

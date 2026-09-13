@@ -27,6 +27,8 @@ Transport is Streamable HTTP, which is what Claude's custom connectors expect.
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Annotated, Any
 
 from fastmcp import FastMCP
@@ -602,17 +604,23 @@ def http_app(deps: Deps | None = None, *, authenticate: bool | None = None) -> A
 def _attach_scheduler(app: Any, deps: Deps) -> None:
     """Run the weekly jobs inside this process, alongside the MCP endpoint.
 
-    Not a separate machine: a Fly volume attaches to exactly one machine and the database
-    lives on it. See ff/api/scheduler.py.
+    Wrapped around FastMCP's own lifespan rather than bolted on with on_startup: the
+    Streamable HTTP transport needs its session manager started, and replacing that
+    lifespan would leave every tool call failing on a server that looked healthy.
+
+    Not a separate machine, because a Fly volume attaches to exactly one machine and the
+    database lives on it. See ff/api/scheduler.py.
     """
-    tasks: list[Any] = []
+    inner = app.router.lifespan_context
 
-    async def _start() -> None:
-        tasks.extend(scheduler.start(deps))
+    @asynccontextmanager
+    async def lifespan(scope: Any) -> AsyncIterator[None]:
+        tasks = scheduler.start(deps)
+        try:
+            async with inner(scope):
+                yield
+        finally:
+            for task in tasks:
+                task.cancel()
 
-    async def _stop() -> None:
-        for task in tasks:
-            task.cancel()
-
-    app.router.on_startup.append(_start)
-    app.router.on_shutdown.append(_stop)
+    app.router.lifespan_context = lifespan

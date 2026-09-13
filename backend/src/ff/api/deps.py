@@ -19,6 +19,7 @@ from ff.adapters.yahoo.auth import TokenStore, YahooAuth
 from ff.adapters.yahoo.client import YahooClient
 from ff.core.cache import FileCache
 from ff.core.config import REPO_ROOT, Settings, settings
+from ff.core.errors import ConfigError
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,7 +53,22 @@ def build_deps(config: Settings | None = None) -> Deps:
         "espn": EspnProjections(season, cache),
         "sleeper": SleeperProjections(season, cache),
     }
-    sources = [available[name] for name in cfg.projection_sources if name in available]
+    # Silently skipping a name with no implementation is how a two-source configuration
+    # becomes a one-source one without anybody noticing. Settings counts names; only this
+    # function knows which names can actually be built, so the check belongs here.
+    unknown = [name for name in cfg.projection_sources if name not in available]
+    if unknown:
+        raise ConfigError(
+            f"FF_PROJECTION_SOURCES names {', '.join(unknown)}, which this build has no "
+            f"adapter for. Available: {', '.join(sorted(available))}."
+        )
+    sources = [available[name] for name in cfg.projection_sources]
+    if len(sources) < 2:
+        raise ConfigError(
+            "At least two projection sources. A simple average beat individual sources in "
+            "63% of head-to-head comparisons, and with one source the epistemic spread is "
+            "not measured, it is invented."
+        )
 
     return Deps(
         yahoo=yahoo,

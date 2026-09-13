@@ -12,7 +12,9 @@ from pathlib import Path
 
 import pytest
 
+from ff.api.deps import build_deps
 from ff.core.config import REPO_ROOT, Settings
+from ff.core.errors import ConfigError
 
 
 class TestEnvFileLocation:
@@ -92,3 +94,34 @@ class TestShippedTemplate:
         """Safety invariant 5.5: dry run is the default and stays the default."""
         settings = Settings(_env_file=REPO_ROOT / ".env.example")  # type: ignore[call-arg]
         assert settings.write_enabled is False
+
+
+class TestProjectionSourcesActuallyExist:
+    """A name in the config with no adapter behind it is how two sources become one.
+
+    Found live: the environment file listed espn and fantasypros, Settings counted two and
+    passed, and build_deps quietly dropped the one it could not build. The server came up
+    healthy reporting a single source -- which the whole projections design calls a
+    misconfiguration, because with one source the epistemic spread is invented rather than
+    measured.
+    """
+
+    def config(self, tmp_path: Path, sources: list[str]) -> Settings:
+        return Settings(
+            yahoo_league_key="470.l.1000",
+            yahoo_team_key="470.l.1000.t.3",
+            database_path=str(tmp_path / "ff.db"),
+            projection_sources=sources,
+        )
+
+    def test_a_source_with_no_adapter_is_an_error_not_a_silent_drop(self, tmp_path: Path) -> None:
+        with pytest.raises(ConfigError, match="fantasypros"):
+            build_deps(self.config(tmp_path, ["espn", "fantasypros"]))
+
+    def test_the_error_names_what_is_available(self, tmp_path: Path) -> None:
+        with pytest.raises(ConfigError, match="espn, sleeper"):
+            build_deps(self.config(tmp_path, ["espn", "nowhere"]))
+
+    def test_the_shipped_pair_builds(self, tmp_path: Path) -> None:
+        deps = build_deps(self.config(tmp_path, ["espn", "sleeper"]))
+        assert [source.name for source in deps.sources] == ["espn", "sleeper"]
