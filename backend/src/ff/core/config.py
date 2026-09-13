@@ -62,7 +62,11 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite:///./ff.db"
     log_level: str = "INFO"
-    projection_sources: list[str] = Field(default_factory=lambda: ["espn", "fantasypros"])
+    # ESPN and Sleeper: two independent forecasters, both free. Sleeper serves Rotowire's
+    # numbers and ESPN serves its own, which is what makes the average worth taking.
+    # FantasyPros is still implemented and still works -- it just costs $8.99/mo and buys
+    # nothing the pair does not already provide, except rank_std. See docs/DECISIONS.md.
+    projection_sources: list[str] = Field(default_factory=lambda: ["espn", "sleeper"])
 
     @field_validator("random_seed", mode="before")
     @classmethod

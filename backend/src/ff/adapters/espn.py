@@ -215,5 +215,14 @@ def weekly_projection(stats: Any, season: int, week: int) -> float | None:
             and int(row.get("seasonId", -1)) == season
         ):
             applied = row.get("appliedTotal")
-            return None if applied is None else float(applied)
+            if applied is None:
+                return None
+            # ESPN renders "we have no projection" as 0.0 with an empty stat line, and it
+            # does this for 22% of the players it returns -- everyone listed OUT, plus
+            # anyone it has not modelled yet. Blending that zero against another source's
+            # real number halves it, which is worse than having no number at all. A zero
+            # that DOES carry a stat line is a genuine forecast and is kept. (BUG-007.)
+            if float(applied) == 0.0 and not row.get("stats"):
+                return None
+            return float(applied)
     return None

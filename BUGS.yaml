@@ -1,5 +1,29 @@
 # Every TODO in code needs an entry here. Newest first.
 bugs:
+  - id: BUG-007
+    title: ESPN's "no projection" zero was being blended as if it were a forecast
+    found: 2026-09-13
+    status: fixed
+    detail: >
+      ESPN renders "we have no number for this player this week" as appliedTotal 0.0 with
+      an empty stat line, and it does this for 22.4% of the players it returns -- everyone
+      listed OUT, plus anyone it has not modelled. weekly_projection took that at face
+      value, so the blend averaged a real projection against a phantom zero and halved it.
+      Brock Bowers came back 0.00 from ESPN against 15.14 from Sleeper; the ensemble would
+      have called it 7.57 and sat him or started him on a number that was wrong in both
+      directions. A zero WITH a stat line is a genuine forecast and is still kept.
+      Not reachable from any single-source test -- it took comparing two sources live,
+      which is the argument for the ensemble restated as a defect.
+    severity: high
+    fixed_in: >
+      backend/src/ff/adapters/espn.py, fixture
+      tests/fixtures/espn/zero_means_no_projection.json (recorded live),
+      regression tests in tests/test_espn.py
+    verified: >
+      Against the live endpoint: ESPN's usable keys fell from 577 to 448 with zero
+      remaining 0.00 values, and the maximum disagreement with Sleeper fell from 15.14
+      points to 5.89.
+
   - id: BUG-006
     title: An unapprovable 401 was retried four times and then blamed on throttling
     found: 2026-09-13

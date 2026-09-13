@@ -99,3 +99,55 @@ on no approval.
 
 **Changes our mind:** write access is granted early, in which case the order is a convenience
 rather than a hedge.
+
+## 2026-09-13 — Sleeper replaces FantasyPros as the second projection source
+
+**Decision.** The default ensemble is ESPN + Sleeper. Both are free. FantasyPros stays
+implemented and tested but is no longer configured by default.
+
+**Why.** FantasyPros was chosen as the required source before anyone checked whether a
+free second source existed. One does. Sleeper serves Rotowire's weekly projections on
+`api.sleeper.com` with no key and no cost, and probing it on 2026-09-13 returned 470
+scored players for the current week including all 32 team defenses.
+
+The ensemble argument survives the swap intact, because the two sources are genuinely
+independent: ESPN publishes its own projections and Sleeper republishes Rotowire's.
+Averaging two views of the same underlying forecast would buy nothing; averaging these
+two buys the thing the 63% figure describes.
+
+Measured live, week 2 of 2026: 427 players matched across both sources, 32 of 32
+defenses, median absolute disagreement 0.97 points.
+
+**What is lost.** FantasyPros' `rank_std` — the spread of expert opinion in rank units,
+and the only direct read on epistemic uncertainty any source offers. Without it, epistemic
+spread is estimated from the gap between exactly two numbers, which is a thin estimate
+resting on a single comparison. This is the weakest part of the current projection path
+and the clearest argument for a third source. `[theory]`
+
+**What is not lost.** Nothing else. FantasyPros' projections were never better than the
+pair, only more expensive.
+
+**Reversible.** Set `FF_PROJECTION_SOURCES=["espn","sleeper","fantasypros"]` and supply a
+key. The adapter, its fixtures and its tests are untouched.
+
+## 2026-09-13 — An ESPN zero with no stat line is not a projection
+
+**Decision.** `weekly_projection` returns `None` for `appliedTotal == 0.0` when the row
+carries no `stats` dict. A zero that does carry a stat line is kept.
+
+**Why.** Found by comparing ESPN against Sleeper live rather than by reading either one's
+output alone — 22.4% of ESPN's keys came back as exactly 0.00, and the largest apparent
+disagreements were players ESPN had no number for. Brock Bowers, listed OUT, at 0.00
+against Sleeper's 15.14.
+
+Blending those produces 7.57: a number that is wrong in both directions, carries no
+warning, and would lose a start/sit call outright. It is strictly worse than having no
+projection, because the player then falls into `unprojected` and is shown honestly as
+uncovered.
+
+After the fix: ESPN's usable keys fell from 577 to 448, every phantom zero disappeared,
+and the maximum cross-source disagreement dropped from 15.14 points to 5.89. `[empirical]`
+
+**The distinction.** A backup who genuinely projects to zero has a stat line full of
+zeroes. A player with no projection has no stat line at all. That is the test, and it is
+ESPN's own encoding rather than a heuristic.

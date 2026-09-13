@@ -20,6 +20,9 @@ DEFAULT_TTL_SECONDS: dict[str, int] = {
     "sleeper_state": 3600,
     "sleeper_players": 24 * 3600,  # Sleeper asks for at most one fetch a day; 5 MB payload
     "sleeper_trending": 3600,
+    # Rotowire revises through the week as news lands; an hour-stale projection on a
+    # Sunday morning is a wrong recommendation, not a slightly old one.
+    "sleeper_projections": 1800,
     "espn_projections": 3600,
     "espn_scoreboard": 900,
     "nflverse_injuries": 6 * 3600,

@@ -238,3 +238,48 @@ class TestStatus:
         status = espn.status()
         assert status.ok is False
         assert status.detail is not None and "503" in status.detail
+
+
+class TestZeroIsNotAProjection:
+    """BUG-007. ESPN renders "no projection" as appliedTotal 0.0 with an empty stat line.
+
+    Found by comparing the two sources live rather than by reading either one: 22.4% of
+    ESPN's keys came back as exactly 0.00, and the biggest "disagreements" with Sleeper
+    turned out to be players ESPN had no number for at all -- Brock Bowers, listed OUT,
+    at 0.00 against Sleeper's 15.14. Averaging those gives 7.57, a number that is wrong in
+    both directions and would lose a start/sit call outright.
+
+    The distinction that matters: a zero WITH a stat line is a real forecast (a backup who
+    will not touch the ball). A zero with no stat line is a gap. The fixture holds both,
+    recorded live on 2026-09-13.
+    """
+
+    def test_a_zero_with_no_stat_line_is_not_a_projection(self) -> None:
+        payload = load("zero_means_no_projection.json")
+        player = payload["players"][0]["player"]
+        assert weekly_projection(player["stats"], 2026, 2) is None
+
+    def test_a_real_projection_in_the_same_player_still_reads(self) -> None:
+        """Proves the skip is about the empty stat line, not about the player."""
+        payload = load("zero_means_no_projection.json")
+        player = payload["players"][0]["player"]
+        assert weekly_projection(player["stats"], 2026, 3) == pytest.approx(14.75, abs=0.01)
+
+    def test_a_zero_with_a_stat_line_is_kept(self) -> None:
+        """A genuine forecast of zero is information and must survive."""
+        stats = [
+            {
+                "statSourceId": 1,
+                "statSplitTypeId": 1,
+                "scoringPeriodId": 2,
+                "seasonId": 2026,
+                "appliedTotal": 0.0,
+                "stats": {"53": 0.0, "42": 0.0},
+            }
+        ]
+        assert weekly_projection(stats, 2026, 2) == 0.0
+
+    def test_the_gap_is_absent_from_the_index_not_zero_in_it(self) -> None:
+        payload = load("zero_means_no_projection.json")
+        assert index_by_match_key(payload, 2026, 2) == {}
+        assert index_by_match_key(payload, 2026, 3) != {}

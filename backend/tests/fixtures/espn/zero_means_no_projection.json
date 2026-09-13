@@ -1,0 +1,285 @@
+{
+ "players": [
+  {
+   "draftAuctionValue": 0,
+   "droppedByEliminatedTeam": false,
+   "id": 4432665,
+   "keeperValue": 0,
+   "keeperValueFuture": 0,
+   "lineupLocked": false,
+   "onTeamId": 0,
+   "player": {
+    "active": true,
+    "defaultPositionId": 4,
+    "draftRanksByRankType": {
+     "STANDARD": {
+      "auctionValue": 34,
+      "published": false,
+      "rank": 21,
+      "rankSourceId": 0,
+      "rankType": "STANDARD",
+      "slotId": 0
+     },
+     "PPR": {
+      "auctionValue": 33,
+      "published": false,
+      "rank": 22,
+      "rankSourceId": 0,
+      "rankType": "PPR",
+      "slotId": 0
+     },
+     "ELIMINATION": {
+      "auctionValue": 24,
+      "published": false,
+      "rank": 20,
+      "rankSourceId": 0,
+      "rankType": "ELIMINATION",
+      "slotId": 0
+     },
+     "SUPERFLEX": {
+      "auctionValue": 25,
+      "published": false,
+      "rank": 42,
+      "rankSourceId": 0,
+      "rankType": "SUPERFLEX",
+      "slotId": 0
+     }
+    },
+    "droppable": false,
+    "eligibleSlots": [
+     5,
+     6,
+     23,
+     7,
+     20,
+     21
+    ],
+    "firstName": "Brock",
+    "fullName": "Brock Bowers",
+    "id": 4432665,
+    "injured": true,
+    "injuryStatus": "OUT",
+    "jersey": "89",
+    "lastName": "Bowers",
+    "lastNewsDate": 1789154269000,
+    "lastVideoDate": 1789050054000,
+    "ownership": {
+     "activityLevel": null,
+     "auctionValueAverage": 33.03,
+     "auctionValueAverageChange": -0.17,
+     "averageDraftPosition": 24.36,
+     "averageDraftPositionPercentChange": -0.11,
+     "date": 1789284622543,
+     "leagueType": 0,
+     "percentChange": -0.01,
+     "percentOwned": 99.84,
+     "percentStarted": 20.99
+    },
+    "proTeamId": 13,
+    "rankings": {
+     "0": [
+      {
+       "auctionValue": 0,
+       "published": true,
+       "rank": 2,
+       "rankSourceId": 9,
+       "rankType": "PPR",
+       "slotId": 6
+      },
+      {
+       "auctionValue": 0,
+       "published": true,
+       "rank": 2,
+       "rankSourceId": 7,
+       "rankType": "STANDARD",
+       "slotId": 6
+      },
+      {
+       "auctionValue": 0,
+       "published": true,
+       "rank": 2,
+       "rankSourceId": 7,
+       "rankType": "PPR",
+       "slotId": 6
+      },
+      {
+       "auctionValue": 0,
+       "published": true,
+       "rank": 1,
+       "rankSourceId": 6,
+       "rankType": "PPR",
+       "slotId": 6
+      },
+      {
+       "auctionValue": 0,
+       "published": true,
+       "rank": 1,
+       "rankSourceId": 12,
+       "rankType": "PPR",
+       "slotId": 6
+      },
+      {
+       "auctionValue": 0,
+       "published": true,
+       "rank": 2,
+       "rankSourceId": 5,
+       "rankType": "PPR",
+       "slotId": 6
+      },
+      {
+       "auctionValue": 0,
+       "published": true,
+       "rank": 2,
+       "rankSourceId": 10,
+       "rankType": "PPR",
+       "slotId": 6
+      },
+      {
+       "auctionValue": 0,
+       "published": true,
+       "rank": 2,
+       "rankSourceId": 3,
+       "rankType": "PPR",
+       "slotId": 6
+      },
+      {
+       "auctionValue": 0,
+       "published": true,
+       "rank": 2,
+       "rankSourceId": 11,
+       "rankType": "PPR",
+       "slotId": 6
+      },
+      {
+       "auctionValue": 0,
+       "averageRank": 2.0,
+       "published": true,
+       "rank": 0,
+       "rankSourceId": 0,
+       "rankType": "STANDARD",
+       "slotId": 6
+      },
+      {
+       "auctionValue": 0,
+       "averageRank": 1.75,
+       "published": true,
+       "rank": 0,
+       "rankSourceId": 0,
+       "rankType": "PPR",
+       "slotId": 6
+      }
+     ],
+     "1": [
+      {
+       "auctionValue": 0,
+       "published": false,
+       "rank": 26,
+       "rankSourceId": 9,
+       "rankType": "PPR",
+       "slotId": 6
+      },
+      {
+       "auctionValue": 0,
+       "published": false,
+       "rank": 26,
+       "rankSourceId": 7,
+       "rankType": "STANDARD",
+       "slotId": 6
+      },
+      {
+       "auctionValue": 0,
+       "published": false,
+       "rank": 27,
+       "rankSourceId": 7,
+       "rankType": "PPR",
+       "slotId": 6
+      },
+      {
+       "auctionValue": 0,
+       "published": false,
+       "rank": 26,
+       "rankSourceId": 3,
+       "rankType": "PPR",
+       "slotId": 6
+      }
+     ]
+    },
+    "seasonOutlook": "Bowers entered 2025 with high expectations and appeared well on his way to another productive season with 103 yards in Week 1, but a late-game injury limited him for three weeks and led to five full missed games. Bowers remained productive when healthy, finishing second among tight ends in fantasy PPG. Incredibly, he tied for fifth in the NFL with 13 end zone targets despite all the missed action. Bowers, who posted a 112-1,194-5 receiving line as a rookie in 2024, will be the top target for No. 1 pick Fernando Mendoza. The 23-year-old is well positioned for a highly productive season and should be on your radar in the second or third round.",
+    "stats": [
+     {
+      "appliedTotal": 0.0,
+      "externalId": "20262",
+      "id": "1120262",
+      "proTeamId": 0,
+      "scoringPeriodId": 2,
+      "seasonId": 2026,
+      "statSourceId": 1,
+      "statSplitTypeId": 1,
+      "stats": {}
+     },
+     {
+      "appliedTotal": 14.75476032,
+      "externalId": "20263",
+      "id": "1120263",
+      "proTeamId": 0,
+      "scoringPeriodId": 3,
+      "seasonId": 2026,
+      "statSourceId": 1,
+      "statSplitTypeId": 1,
+      "stats": {
+       "23": 0.247279815,
+       "24": 0.927276778,
+       "25": 0.012085176,
+       "26": 0.000686,
+       "35": 0.000454525,
+       "36": 0.000318,
+       "37": 3.09e-05,
+       "38": 1.05e-06,
+       "39": 3.7499089,
+       "40": 0.927276778,
+       "42": 60.73768402,
+       "43": 0.382215265,
+       "44": 0.024389384,
+       "45": 0.007417576,
+       "46": 0.004847386,
+       "47": 12.0,
+       "48": 6.0,
+       "49": 3.0,
+       "50": 2.0,
+       "51": 1.0,
+       "53": 6.215220671,
+       "56": 0.160177979,
+       "57": 0.00495,
+       "58": 8.323128447,
+       "60": 9.7724099,
+       "61": 60.73768402,
+       "62": 0.025074941,
+       "63": 0.000174,
+       "66": 0.001511975,
+       "67": 0.03800252,
+       "68": 0.039514495,
+       "70": 0.000695508,
+       "71": 0.021281411,
+       "72": 0.02197692,
+       "73": 0.02197692,
+       "210": 1.0,
+       "212": 0.177224106,
+       "213": 3.18022462
+      }
+     }
+    ]
+   },
+   "ratings": {
+    "0": {
+     "positionalRanking": 11,
+     "totalRanking": 94,
+     "totalRating": 176.2
+    }
+   },
+   "rosterLocked": false,
+   "status": "WAIVERS",
+   "tradeLocked": false,
+   "waiverProcessDate": 1789369200000
+  }
+ ]
+}
