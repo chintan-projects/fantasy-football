@@ -1,0 +1,834 @@
+{
+  "fantasy_content": {
+    "xml:lang": "en-US",
+    "yahoo:uri": "/fantasy/v2/team/470.l.1000.t.6/roster;week=2",
+    "team": [
+      [
+        {
+          "team_key": "470.l.1000.t.6"
+        },
+        {
+          "team_id": "6"
+        },
+        {
+          "name": "Regression To The Mean"
+        },
+        {
+          "url": "https://football.fantasysports.yahoo.com/f1/1000/6"
+        },
+        {
+          "waiver_priority": 4
+        },
+        {
+          "faab_balance": "83"
+        },
+        {
+          "number_of_moves": "3"
+        }
+      ],
+      {
+        "roster": {
+          "coverage_type": "week",
+          "week": "2",
+          "is_editable": 1,
+          "0": {
+            "players": {
+              "0": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.30977"
+                    },
+                    {
+                      "player_id": "30977"
+                    },
+                    {
+                      "name": {
+                        "full": "Bijan Robinson",
+                        "first": "Bijan",
+                        "last": "Robinson",
+                        "ascii_first": "Bijan",
+                        "ascii_last": "Robinson"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.30"
+                    },
+                    {
+                      "editorial_team_abbr": "ATL"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "RB"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "RB"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "RB"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "1": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.31002"
+                    },
+                    {
+                      "player_id": "31002"
+                    },
+                    {
+                      "name": {
+                        "full": "Jahmyr Gibbs",
+                        "first": "Jahmyr",
+                        "last": "Gibbs",
+                        "ascii_first": "Jahmyr",
+                        "ascii_last": "Gibbs"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.31"
+                    },
+                    {
+                      "editorial_team_abbr": "DET"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "RB"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "RB"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "RB"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "2": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.32671"
+                    },
+                    {
+                      "player_id": "32671"
+                    },
+                    {
+                      "name": {
+                        "full": "Malik Nabers",
+                        "first": "Malik",
+                        "last": "Nabers",
+                        "ascii_first": "Malik",
+                        "ascii_last": "Nabers"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.32"
+                    },
+                    {
+                      "editorial_team_abbr": "NYG"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "WR"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "WR"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "WR"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "3": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.30123"
+                    },
+                    {
+                      "player_id": "30123"
+                    },
+                    {
+                      "name": {
+                        "full": "Amon-Ra St. Brown",
+                        "first": "Amon-Ra",
+                        "last": "St. Brown",
+                        "ascii_first": "Amon-Ra",
+                        "ascii_last": "St. Brown"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.30"
+                    },
+                    {
+                      "editorial_team_abbr": "DET"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "WR"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "WR"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "WR"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "4": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.29369"
+                    },
+                    {
+                      "player_id": "29369"
+                    },
+                    {
+                      "name": {
+                        "full": "Trey McBride",
+                        "first": "Trey",
+                        "last": "McBride",
+                        "ascii_first": "Trey",
+                        "ascii_last": "McBride"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.29"
+                    },
+                    {
+                      "editorial_team_abbr": "ARI"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "TE"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "TE"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "TE"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "5": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.31881"
+                    },
+                    {
+                      "player_id": "31881"
+                    },
+                    {
+                      "name": {
+                        "full": "Jayden Daniels",
+                        "first": "Jayden",
+                        "last": "Daniels",
+                        "ascii_first": "Jayden",
+                        "ascii_last": "Daniels"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.31"
+                    },
+                    {
+                      "editorial_team_abbr": "WAS"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "QB"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "QB"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "QB"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "6": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.33012"
+                    },
+                    {
+                      "player_id": "33012"
+                    },
+                    {
+                      "name": {
+                        "full": "Rome Odunze",
+                        "first": "Rome",
+                        "last": "Odunze",
+                        "ascii_first": "Rome",
+                        "ascii_last": "Odunze"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.33"
+                    },
+                    {
+                      "editorial_team_abbr": "CHI"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "WR"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "WR"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    },
+                    {
+                      "status": "Q"
+                    },
+                    {
+                      "status_full": "Questionable"
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "W/R/T"
+                      },
+                      {
+                        "is_flex": 1
+                      }
+                    ]
+                  }
+                ]
+              },
+              "7": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.28392"
+                    },
+                    {
+                      "player_id": "28392"
+                    },
+                    {
+                      "name": {
+                        "full": "Jake Bates",
+                        "first": "Jake",
+                        "last": "Bates",
+                        "ascii_first": "Jake",
+                        "ascii_last": "Bates"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.28"
+                    },
+                    {
+                      "editorial_team_abbr": "DET"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "K"
+                    },
+                    {
+                      "position_type": "K"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "K"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "K"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "8": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.100024"
+                    },
+                    {
+                      "player_id": "100024"
+                    },
+                    {
+                      "name": {
+                        "full": "Denver Broncos",
+                        "first": "Denver",
+                        "last": "Broncos",
+                        "ascii_first": "Denver",
+                        "ascii_last": "Broncos"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.10"
+                    },
+                    {
+                      "editorial_team_abbr": "DEN"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "DEF"
+                    },
+                    {
+                      "position_type": "DEF"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "DEF"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "DEF"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "9": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.31455"
+                    },
+                    {
+                      "player_id": "31455"
+                    },
+                    {
+                      "name": {
+                        "full": "Tyrone Tracy",
+                        "first": "Tyrone",
+                        "last": "Tracy",
+                        "ascii_first": "Tyrone",
+                        "ascii_last": "Tracy"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.31"
+                    },
+                    {
+                      "editorial_team_abbr": "NYG"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "RB"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "RB"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "BN"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "10": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.30555"
+                    },
+                    {
+                      "player_id": "30555"
+                    },
+                    {
+                      "name": {
+                        "full": "Jordan Addison",
+                        "first": "Jordan",
+                        "last": "Addison",
+                        "ascii_first": "Jordan",
+                        "ascii_last": "Addison"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.30"
+                    },
+                    {
+                      "editorial_team_abbr": "MIN"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "WR"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "WR"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    },
+                    {
+                      "status": "Q"
+                    },
+                    {
+                      "status_full": "Questionable"
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "BN"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "11": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.29901"
+                    },
+                    {
+                      "player_id": "29901"
+                    },
+                    {
+                      "name": {
+                        "full": "Brock Bowers",
+                        "first": "Brock",
+                        "last": "Bowers",
+                        "ascii_first": "Brock",
+                        "ascii_last": "Bowers"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.29"
+                    },
+                    {
+                      "editorial_team_abbr": "LV"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "TE"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "TE"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    },
+                    {
+                      "status": "O"
+                    },
+                    {
+                      "status_full": "Out"
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "IR"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "count": 12
+            }
+          }
+        }
+      }
+    ],
+    "time": "112.4ms",
+    "refresh_rate": "60"
+  }
+}

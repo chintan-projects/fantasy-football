@@ -1,0 +1,21 @@
+{
+  "fantasy_content": {
+    "league": [
+      {
+        "league_key": "470.l.1000",
+        "league_id": "1000",
+        "name": "Sunday Morning Problem",
+        "num_teams": 12
+      },
+      {
+        "settings": [
+          {
+            "draft_type": "live",
+            "scoring_type": "head",
+            "uses_faab": "1"
+          }
+        ]
+      }
+    ]
+  }
+}

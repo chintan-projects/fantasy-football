@@ -1,0 +1,15 @@
+{
+  "fantasy_content": {
+    "team": [
+      [{ "team_key": "470.l.1000.t.6" }, { "team_id": "6" }, { "name": "Regression To The Mean" }],
+      {
+        "roster": {
+          "coverage_type": "week",
+          "week": "2",
+          "is_editable": 1,
+          "0": { "players": { "count": 0 } }
+        }
+      }
+    ]
+  }
+}

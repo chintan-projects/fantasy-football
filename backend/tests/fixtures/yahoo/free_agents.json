@@ -1,0 +1,218 @@
+{
+  "fantasy_content": {
+    "yahoo:uri": "/fantasy/v2/league/470.l.1000/players;start=0;count=25;status=FA;sort=PTS/percent_owned",
+    "league": [
+      {
+        "league_key": "470.l.1000",
+        "league_id": "1000",
+        "name": "Sunday Morning Problem"
+      },
+      {
+        "players": {
+          "0": {
+            "player": [
+              [
+                {
+                  "player_key": "470.p.41011"
+                },
+                {
+                  "player_id": "41011"
+                },
+                {
+                  "name": {
+                    "full": "Jaylen Wright",
+                    "first": "Jaylen",
+                    "last": "Wright",
+                    "ascii_first": "Jaylen",
+                    "ascii_last": "Wright"
+                  }
+                },
+                {
+                  "editorial_team_key": "470.t.41"
+                },
+                {
+                  "editorial_team_abbr": "MIA"
+                },
+                {
+                  "uniform_number": "7"
+                },
+                {
+                  "display_position": "RB"
+                },
+                {
+                  "position_type": "O"
+                },
+                {
+                  "is_undroppable": "0"
+                },
+                {
+                  "eligible_positions": [
+                    {
+                      "position": "RB"
+                    },
+                    {
+                      "position": "W/R/T"
+                    }
+                  ]
+                }
+              ],
+              {
+                "percent_owned": [
+                  {
+                    "coverage_type": "week"
+                  },
+                  {
+                    "week": "2"
+                  },
+                  {
+                    "value": 14
+                  },
+                  {
+                    "delta": "+2"
+                  }
+                ]
+              }
+            ]
+          },
+          "1": {
+            "player": [
+              [
+                {
+                  "player_key": "470.p.41012"
+                },
+                {
+                  "player_id": "41012"
+                },
+                {
+                  "name": {
+                    "full": "Luke McCaffrey",
+                    "first": "Luke",
+                    "last": "McCaffrey",
+                    "ascii_first": "Luke",
+                    "ascii_last": "McCaffrey"
+                  }
+                },
+                {
+                  "editorial_team_key": "470.t.41"
+                },
+                {
+                  "editorial_team_abbr": "WAS"
+                },
+                {
+                  "uniform_number": "7"
+                },
+                {
+                  "display_position": "WR"
+                },
+                {
+                  "position_type": "O"
+                },
+                {
+                  "is_undroppable": "0"
+                },
+                {
+                  "eligible_positions": [
+                    {
+                      "position": "WR"
+                    },
+                    {
+                      "position": "W/R/T"
+                    }
+                  ]
+                },
+                {
+                  "status": "Q"
+                },
+                {
+                  "status_full": "Questionable"
+                }
+              ],
+              {
+                "percent_owned": [
+                  {
+                    "coverage_type": "week"
+                  },
+                  {
+                    "week": "2"
+                  },
+                  {
+                    "value": 8
+                  },
+                  {
+                    "delta": "+2"
+                  }
+                ]
+              }
+            ]
+          },
+          "2": {
+            "player": [
+              [
+                {
+                  "player_key": "470.p.41013"
+                },
+                {
+                  "player_id": "41013"
+                },
+                {
+                  "name": {
+                    "full": "Cade Otton",
+                    "first": "Cade",
+                    "last": "Otton",
+                    "ascii_first": "Cade",
+                    "ascii_last": "Otton"
+                  }
+                },
+                {
+                  "editorial_team_key": "470.t.41"
+                },
+                {
+                  "editorial_team_abbr": "TB"
+                },
+                {
+                  "uniform_number": "7"
+                },
+                {
+                  "display_position": "TE"
+                },
+                {
+                  "position_type": "O"
+                },
+                {
+                  "is_undroppable": "0"
+                },
+                {
+                  "eligible_positions": [
+                    {
+                      "position": "TE"
+                    },
+                    {
+                      "position": "W/R/T"
+                    }
+                  ]
+                }
+              ],
+              {
+                "percent_owned": [
+                  {
+                    "coverage_type": "week"
+                  },
+                  {
+                    "week": "2"
+                  },
+                  {
+                    "value": 31
+                  },
+                  {
+                    "delta": "+2"
+                  }
+                ]
+              }
+            ]
+          },
+          "count": 3
+        }
+      }
+    ]
+  }
+}

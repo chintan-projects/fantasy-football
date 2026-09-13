@@ -1,0 +1,24 @@
+{
+  "fantasy_content": {
+    "league": [
+      { "league_key": "470.l.1000" },
+      {
+        "players": {
+          "0": {
+            "player": [
+              [
+                { "player_key": "470.p.41011" },
+                { "player_id": "41011" },
+                { "name": { "full": "Jaylen Wright" } },
+                { "editorial_team_abbr": "MIA" },
+                { "display_position": "ATH" },
+                { "eligible_positions": [{ "position": "ATH" }] }
+              ]
+            ]
+          },
+          "count": 1
+        }
+      }
+    ]
+  }
+}

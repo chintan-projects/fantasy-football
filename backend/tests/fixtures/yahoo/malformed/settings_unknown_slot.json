@@ -1,0 +1,20 @@
+{
+  "fantasy_content": {
+    "league": [
+      { "league_key": "470.l.1000", "league_id": "1000", "num_teams": 12 },
+      {
+        "settings": [
+          {
+            "uses_faab": "1",
+            "playoff_start_week": "15",
+            "roster_positions": [
+              { "roster_position": { "position": "QB", "count": 1 } },
+              { "roster_position": { "position": "OP", "count": 1 } },
+              { "roster_position": { "position": "BN", "count": 6 } }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

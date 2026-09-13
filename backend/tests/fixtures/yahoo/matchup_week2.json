@@ -1,0 +1,96 @@
+{
+  "fantasy_content": {
+    "yahoo:uri": "/fantasy/v2/team/470.l.1000.t.6/matchups;weeks=2",
+    "team": [
+      [
+        {
+          "team_key": "470.l.1000.t.6"
+        },
+        {
+          "team_id": "6"
+        },
+        {
+          "name": "Regression To The Mean"
+        }
+      ],
+      {
+        "matchups": {
+          "0": {
+            "matchup": {
+              "week": "2",
+              "week_start": "2026-09-17",
+              "week_end": "2026-09-22",
+              "status": "preevent",
+              "is_playoffs": "0",
+              "is_consolation": "0",
+              "0": {
+                "teams": {
+                  "0": {
+                    "team": [
+                      [
+                        {
+                          "team_key": "470.l.1000.t.6"
+                        },
+                        {
+                          "team_id": "6"
+                        },
+                        {
+                          "name": "Regression To The Mean"
+                        }
+                      ],
+                      {
+                        "team_points": {
+                          "coverage_type": "week",
+                          "week": "2",
+                          "total": "0.00"
+                        }
+                      },
+                      {
+                        "team_projected_points": {
+                          "coverage_type": "week",
+                          "week": "2",
+                          "total": "0.00"
+                        }
+                      }
+                    ]
+                  },
+                  "1": {
+                    "team": [
+                      [
+                        {
+                          "team_key": "470.l.1000.t.3"
+                        },
+                        {
+                          "team_id": "3"
+                        },
+                        {
+                          "name": "Waiver Wire Warriors"
+                        }
+                      ],
+                      {
+                        "team_points": {
+                          "coverage_type": "week",
+                          "week": "2",
+                          "total": "0.00"
+                        }
+                      },
+                      {
+                        "team_projected_points": {
+                          "coverage_type": "week",
+                          "week": "2",
+                          "total": "0.00"
+                        }
+                      }
+                    ]
+                  },
+                  "count": 2
+                }
+              }
+            }
+          },
+          "count": 1
+        }
+      }
+    ]
+  }
+}

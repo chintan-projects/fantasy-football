@@ -1,0 +1,46 @@
+{
+  "fantasy_content": {
+    "xml:lang": "en-US",
+    "yahoo:uri": "/fantasy/v2/league/470.l.1000/settings",
+    "league": [
+      {
+        "league_key": "470.l.1000",
+        "league_id": "1000",
+        "name": "Sunday Morning Problem",
+        "url": "https://football.fantasysports.yahoo.com/f1/1000",
+        "num_teams": 12,
+        "current_week": 2,
+        "start_week": "1",
+        "end_week": "17",
+        "season": "2026",
+        "scoring_type": "head",
+        "league_type": "private"
+      },
+      {
+        "settings": [
+          {
+            "draft_type": "live",
+            "scoring_type": "head",
+            "uses_playoff": "1",
+            "playoff_start_week": "15",
+            "num_playoff_teams": "6",
+            "waiver_type": "FR",
+            "waiver_rule": "gametime",
+            "uses_faab": "1",
+            "roster_positions": [
+              { "roster_position": { "position": "QB", "position_type": "O", "count": 1 } },
+              { "roster_position": { "position": "RB", "position_type": "O", "count": 2 } },
+              { "roster_position": { "position": "WR", "position_type": "O", "count": 2 } },
+              { "roster_position": { "position": "TE", "position_type": "O", "count": 1 } },
+              { "roster_position": { "position": "W/R/T", "count": 1 } },
+              { "roster_position": { "position": "K", "position_type": "K", "count": 1 } },
+              { "roster_position": { "position": "DEF", "position_type": "DT", "count": 1 } },
+              { "roster_position": { "position": "BN", "count": 6 } },
+              { "roster_position": { "position": "IR", "count": 2 } }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

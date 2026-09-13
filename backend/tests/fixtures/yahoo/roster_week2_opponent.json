@@ -1,0 +1,671 @@
+{
+  "fantasy_content": {
+    "yahoo:uri": "/fantasy/v2/team/470.l.1000.t.3/roster;week=2",
+    "team": [
+      [
+        {
+          "team_key": "470.l.1000.t.3"
+        },
+        {
+          "team_id": "3"
+        },
+        {
+          "name": "Waiver Wire Warriors"
+        }
+      ],
+      {
+        "roster": {
+          "coverage_type": "week",
+          "week": "2",
+          "is_editable": 1,
+          "0": {
+            "players": {
+              "0": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.40001"
+                    },
+                    {
+                      "player_id": "40001"
+                    },
+                    {
+                      "name": {
+                        "full": "Josh Allen",
+                        "first": "Josh",
+                        "last": "Allen",
+                        "ascii_first": "Josh",
+                        "ascii_last": "Allen"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.40"
+                    },
+                    {
+                      "editorial_team_abbr": "BUF"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "QB"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "QB"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "QB"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "1": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.40002"
+                    },
+                    {
+                      "player_id": "40002"
+                    },
+                    {
+                      "name": {
+                        "full": "Saquon Barkley",
+                        "first": "Saquon",
+                        "last": "Barkley",
+                        "ascii_first": "Saquon",
+                        "ascii_last": "Barkley"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.40"
+                    },
+                    {
+                      "editorial_team_abbr": "PHI"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "RB"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "RB"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "RB"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "2": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.40003"
+                    },
+                    {
+                      "player_id": "40003"
+                    },
+                    {
+                      "name": {
+                        "full": "Kyren Williams",
+                        "first": "Kyren",
+                        "last": "Williams",
+                        "ascii_first": "Kyren",
+                        "ascii_last": "Williams"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.40"
+                    },
+                    {
+                      "editorial_team_abbr": "LAR"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "RB"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "RB"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "RB"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "3": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.40004"
+                    },
+                    {
+                      "player_id": "40004"
+                    },
+                    {
+                      "name": {
+                        "full": "Ja'Marr Chase",
+                        "first": "Ja'Marr",
+                        "last": "Chase",
+                        "ascii_first": "Ja'Marr",
+                        "ascii_last": "Chase"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.40"
+                    },
+                    {
+                      "editorial_team_abbr": "CIN"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "WR"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "WR"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "WR"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "4": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.40005"
+                    },
+                    {
+                      "player_id": "40005"
+                    },
+                    {
+                      "name": {
+                        "full": "Puka Nacua",
+                        "first": "Puka",
+                        "last": "Nacua",
+                        "ascii_first": "Puka",
+                        "ascii_last": "Nacua"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.40"
+                    },
+                    {
+                      "editorial_team_abbr": "LAR"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "WR"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "WR"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "WR"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "5": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.40006"
+                    },
+                    {
+                      "player_id": "40006"
+                    },
+                    {
+                      "name": {
+                        "full": "George Kittle",
+                        "first": "George",
+                        "last": "Kittle",
+                        "ascii_first": "George",
+                        "ascii_last": "Kittle"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.40"
+                    },
+                    {
+                      "editorial_team_abbr": "SF"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "TE"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "TE"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "TE"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "6": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.40007"
+                    },
+                    {
+                      "player_id": "40007"
+                    },
+                    {
+                      "name": {
+                        "full": "Jaxon Smith-Njigba",
+                        "first": "Jaxon",
+                        "last": "Smith-Njigba",
+                        "ascii_first": "Jaxon",
+                        "ascii_last": "Smith-Njigba"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.40"
+                    },
+                    {
+                      "editorial_team_abbr": "SEA"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "WR"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "WR"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "W/R/T"
+                      },
+                      {
+                        "is_flex": 1
+                      }
+                    ]
+                  }
+                ]
+              },
+              "7": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.40008"
+                    },
+                    {
+                      "player_id": "40008"
+                    },
+                    {
+                      "name": {
+                        "full": "Chris Boswell",
+                        "first": "Chris",
+                        "last": "Boswell",
+                        "ascii_first": "Chris",
+                        "ascii_last": "Boswell"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.40"
+                    },
+                    {
+                      "editorial_team_abbr": "PIT"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "K"
+                    },
+                    {
+                      "position_type": "K"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "K"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "K"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "8": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.100011"
+                    },
+                    {
+                      "player_id": "100011"
+                    },
+                    {
+                      "name": {
+                        "full": "Houston Texans",
+                        "first": "Houston",
+                        "last": "Texans",
+                        "ascii_first": "Houston",
+                        "ascii_last": "Texans"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.10"
+                    },
+                    {
+                      "editorial_team_abbr": "HOU"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "DEF"
+                    },
+                    {
+                      "position_type": "DEF"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "DEF"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "DEF"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "9": {
+                "player": [
+                  [
+                    {
+                      "player_key": "470.p.40010"
+                    },
+                    {
+                      "player_id": "40010"
+                    },
+                    {
+                      "name": {
+                        "full": "Tank Bigsby",
+                        "first": "Tank",
+                        "last": "Bigsby",
+                        "ascii_first": "Tank",
+                        "ascii_last": "Bigsby"
+                      }
+                    },
+                    {
+                      "editorial_team_key": "470.t.40"
+                    },
+                    {
+                      "editorial_team_abbr": "JAX"
+                    },
+                    {
+                      "uniform_number": "7"
+                    },
+                    {
+                      "display_position": "RB"
+                    },
+                    {
+                      "position_type": "O"
+                    },
+                    {
+                      "is_undroppable": "0"
+                    },
+                    {
+                      "eligible_positions": [
+                        {
+                          "position": "RB"
+                        },
+                        {
+                          "position": "W/R/T"
+                        }
+                      ]
+                    }
+                  ],
+                  {
+                    "selected_position": [
+                      {
+                        "coverage_type": "week"
+                      },
+                      {
+                        "week": "2"
+                      },
+                      {
+                        "position": "BN"
+                      },
+                      {
+                        "is_flex": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "count": 10
+            }
+          }
+        }
+      }
+    ]
+  }
+}
