@@ -32,4 +32,10 @@ leagues: ## List your Yahoo leagues and their keys
 probe: ## Test whether Yahoo write access actually works
 	cd backend && uv run python ../scripts/probe_write.py
 
-.PHONY: help setup dev test check fix auth leagues probe
+.PHONY: help setup dev test check fix auth leagues probe mcp mcp-demo
+
+mcp-demo: ## Run every MCP tool against fixtures and print what Claude would see
+	cd backend && uv run python ../scripts/mcp_demo.py
+
+mcp: ## Run the MCP server locally (streamable HTTP on /mcp)
+	cd backend && uv run uvicorn "ff.api.mcp:http_app" --factory --port 8000

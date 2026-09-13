@@ -13,6 +13,7 @@ import numpy as np
 from ff.core.logging import get_logger
 from ff.domain.distributions import PlayerContext
 from ff.domain.lineup import (
+    NOISE_THRESHOLD_WIN_PROB,
     Candidate,
     contested_slots,
     decide,
@@ -59,27 +60,47 @@ def recommend(inputs: WeekInputs) -> Recommendation:
         p, band = win_probability(contexts, inputs.opponent_contexts, inputs.draws, rng)
         scored.append((p, band, lineup))
 
+    baseline = greedy_lineup(inputs.candidates, inputs.settings)
     scored.sort(key=lambda t: t[0], reverse=True)
     best_p, best_band, best = scored[0]
-    baseline_p = next(
-        (p for p, _, lu in scored if lu == greedy_lineup(inputs.candidates, inputs.settings)),
-        best_p,
+    baseline_p, baseline_band = next(
+        ((p, band) for p, band, lu in scored if lu == baseline), (best_p, best_band)
     )
     am_i_favored = best_p > 0.5
 
+    # BUG-008. If the simulation cannot separate the winning lineup from the
+    # highest-projection one, keep the highest-projection one. Two reasons, and the second
+    # is the one that bites: a swap the model cannot justify is churn, and the per-slot
+    # verdicts below are derived from the greedy lineup -- so taking a variant the
+    # simulation rates as a tie produces a plan that contradicts its own explanation.
+    if best_p - baseline_p < NOISE_THRESHOLD_WIN_PROB:
+        best_p, best_band, best = baseline_p, baseline_band, baseline
+
     by_id = {c.id: c for c in inputs.candidates}
     decisions: list[SlotDecision] = []
-    for slot, starter, alternative in contested_slots(inputs.candidates, inputs.settings):
+    for slot, greedy_starter, rival in contested_slots(inputs.candidates, inputs.settings):
+        # BUG-008. Explain the lineup we are recommending, not the one greedy would have
+        # picked. contested_slots names the pair who compete for the slot; which of them
+        # ends up starting is the plan's call, so read the incumbent off the plan.
+        pair = (greedy_starter, rival)
+        starter = next((pid for pid in pair if best.get(pid) is slot), None)
+        alternative = next((pid for pid in pair if pid != starter), None)
+        if starter is None or alternative is None:
+            continue  # the plan moved one of them elsewhere; this is no longer that choice
+
         variant = {k: v for k, v in best.items() if k != starter}
         variant[alternative] = slot
         variant_p = next((p for p, _, lu in scored if lu == variant), None)
-        delta = 0.0 if variant_p is None else variant_p - best_p
+        if variant_p is None:
+            # Never report an unsimulated swap as a dead heat -- that is a claim, and it is
+            # the claim most likely to be wrong. Leave the slot out instead.
+            continue
         decisions.append(
             decide(
                 slot=slot,
                 starter=starter,
                 alternative=alternative,
-                win_prob_delta=delta,
+                win_prob_delta=variant_p - best_p,
                 starter_proj=by_id[starter].projection,
                 alt_proj=by_id[alternative].projection,
                 am_i_favored=am_i_favored,

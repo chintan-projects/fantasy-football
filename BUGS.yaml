@@ -1,5 +1,30 @@
 # Every TODO in code needs an entry here. Newest first.
 bugs:
+  - id: BUG-008
+    title: The lineup plan contradicted its own per-slot explanation
+    found: 2026-09-13
+    status: fixed
+    detail: >
+      One call to ff_recommend_lineup returned a plan starting Brock Bowers at TE and, in
+      the same response, a verdict for the TE slot reading "start Trey McBride". The plan
+      came from the simulated best lineup; the verdicts came from contested_slots, which
+      derives from the greedy highest-projection lineup. Whenever the simulation preferred
+      a variant, the two halves described different lineups.
+      A second defect sat underneath it: when the single-swap variant was not among the
+      enumerated lineups, the delta defaulted to 0.0, which decide() reads as a dead heat.
+      So "too close to call" -- the one output this project treats as sacred -- was being
+      printed for swaps that had never been simulated at all.
+      Both fixed in services/recommend.py. Verdicts are now read off the recommended
+      lineup, an unsimulated swap is omitted rather than reported as a tie, and a plan that
+      beats the greedy lineup by less than NOISE_THRESHOLD_WIN_PROB falls back to greedy
+      rather than churning the roster on noise.
+      Found by reading the mcp_demo output, not by a failing test. Every unit test passed
+      throughout, because each half was correct in isolation.
+    severity: high
+    fixed_in: >
+      backend/src/ff/services/recommend.py, regression test
+      test_the_plan_and_its_own_verdicts_never_disagree in tests/test_mcp.py
+
   - id: KNOWN-001
     title: Yahoo exposes winning FAAB bids only, so the bid distribution is unobservable
     found: 2026-09-13

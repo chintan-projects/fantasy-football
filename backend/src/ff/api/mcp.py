@@ -382,7 +382,13 @@ def build_server(deps: Deps | None = None) -> FastMCP:
         name="ff_list_preferences",
         title="List preferences",
         annotations=_read_only(),
-        description="List the standing preferences the owner has recorded.",
+        description=(
+            "List the standing preferences the owner has recorded: do-not-drop "
+            "players, risk posture, roster rules.\n\n"
+            "Read these before making a recommendation the owner will act on. They are "
+            "constraints on the advice, not trivia -- a do-not-drop player is not a "
+            "drop candidate no matter what the math says."
+        ),
     )
     def ff_list_preferences() -> dict[str, Any]:
         return {
