@@ -1,5 +1,33 @@
 # Every TODO in code needs an entry here. Newest first.
 bugs:
+  - id: BUG-003
+    title: A blank value in the environment file stops the whole app from starting
+    found: 2026-09-13
+    status: fixed
+    detail: >
+      FF_RANDOM_SEED= (present, empty) is how people write "leave this unset", and the
+      shipped template did exactly that. Pydantic passed an empty string to an int | None
+      field and Settings() raised, so every make target died before doing anything. Fixed
+      with a before-validator that treats blank as unset; a non-numeric value still raises,
+      because that is a typo someone needs told about. The template now comments the line
+      out rather than shipping a blank.
+    severity: high
+    fixed_in: backend/src/ff/core/config.py, regression test tests/test_config.py
+
+  - id: BUG-002
+    title: The repo-root environment file was invisible to every make target
+    found: 2026-09-13
+    status: fixed
+    detail: >
+      Settings used a bare relative env_file, which resolves against the process working
+      directory. Every make target runs "cd backend" first, so the file at the repo root
+      was never read and `make auth` reported missing credentials that were sitting right
+      there. The workaround people reach for -- copying the file into backend/ -- leaves
+      two secret files that drift apart. Fixed by walking up from the module to the
+      directory holding the Makefile.
+    severity: high
+    fixed_in: backend/src/ff/core/config.py, regression test tests/test_config.py
+
   - id: BUG-001
     title: mypy --strict fails on adapters/yahoo/executors.py
     found: 2026-09-12
