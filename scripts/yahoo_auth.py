@@ -1,18 +1,21 @@
-"""Authorize with Yahoo over a local HTTPS listener.
+"""Authorize with Yahoo over a local HTTPS listener, then prove the token works.
 
 Yahoo rejects a plain http://localhost redirect, so this serves HTTPS with a self-signed
 certificate. Your browser will warn about it; that is expected. The `oob` copy-paste flow is
 still documented but the registration form wants a real redirect URI, so this is the path
 that keeps working.
+
+The last step is the point of the script: it makes one real read call. A token that saved
+cleanly but cannot read is the failure mode worth catching here rather than on Sunday.
 """
 
 from __future__ import annotations
 
-import json
 import ssl
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.parse
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -20,10 +23,17 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend" / "src"))
 
+from ff.adapters.yahoo.auth import (  # noqa: E402
+    TokenStore,
+    YahooAuth,
+    authorize_url,
+    exchange_code,
+)
+from ff.adapters.yahoo.client import YahooClient  # noqa: E402
+from ff.core.cache import FileCache  # noqa: E402
 from ff.core.config import settings  # noqa: E402
+from ff.core.errors import FFError  # noqa: E402
 
-AUTH_URL = "https://api.login.yahoo.com/oauth2/request_auth"
-TOKEN_URL = "https://api.login.yahoo.com/oauth2/get_token"
 code_holder: dict[str, str] = {}
 
 
@@ -50,9 +60,20 @@ def self_signed_cert() -> tuple[str, str]:
     cert, key = tmp / "cert.pem", tmp / "key.pem"
     subprocess.run(
         [
-            "openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes",
-            "-keyout", str(key), "-out", str(cert), "-days", "1",
-            "-subj", "/CN=localhost",
+            "openssl",
+            "req",
+            "-x509",
+            "-newkey",
+            "rsa:2048",
+            "-nodes",
+            "-keyout",
+            str(key),
+            "-out",
+            str(cert),
+            "-days",
+            "1",
+            "-subj",
+            "/CN=localhost",
         ],
         check=True,
         capture_output=True,
@@ -60,66 +81,68 @@ def self_signed_cert() -> tuple[str, str]:
     return str(cert), str(key)
 
 
-def main() -> int:
-    cfg = settings()
-    if not cfg.yahoo_client_id or not cfg.yahoo_client_secret:
-        print("Set FF_YAHOO_CLIENT_ID and FF_YAHOO_CLIENT_SECRET in .env first.")
-        print("Walkthrough: docs/YAHOO_SETUP.md")
-        return 2
-
-    # fspt-w requests write. Note this is not enough on its own: Read/Write must ALSO be
-    # enabled on the app in YDN, or you get a read-only token with no error.
-    params = urllib.parse.urlencode(
-        {
-            "client_id": cfg.yahoo_client_id,
-            "redirect_uri": cfg.yahoo_redirect_uri,
-            "response_type": "code",
-            "scope": "fspt-w",
-        }
-    )
-    url = f"{AUTH_URL}?{params}"
-    print("Opening Yahoo consent page. Accept the self-signed certificate warning.\n")
-    print(url, "\n")
-    webbrowser.open(url)
-
+def wait_for_code(redirect_uri: str) -> str:
     cert, key = self_signed_cert()
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.load_cert_chain(cert, key)
-    port = urllib.parse.urlparse(cfg.yahoo_redirect_uri).port or 8080
+    port = urllib.parse.urlparse(redirect_uri).port or 8080
     server = HTTPServer(("localhost", port), Handler)
     server.socket = context.wrap_socket(server.socket, server_side=True)
     while "code" not in code_holder:
         server.handle_request()
+    return code_holder["code"]
 
-    import httpx
 
-    resp = httpx.post(
-        TOKEN_URL,
-        data={
-            "grant_type": "authorization_code",
-            "code": code_holder["code"],
-            "redirect_uri": cfg.yahoo_redirect_uri,  # required, and must match exactly
-            "client_id": cfg.yahoo_client_id,
-            "client_secret": cfg.yahoo_client_secret,
-        },
-        auth=(cfg.yahoo_client_id, cfg.yahoo_client_secret),
-        timeout=30.0,
-    )
-    if resp.status_code != 200:
-        print(f"Token exchange failed: HTTP {resp.status_code}")
-        print(resp.text[:400])
+def main() -> int:
+    cfg = settings()
+    if not cfg.yahoo_client_id or not cfg.yahoo_client_secret:
+        print("Set FF_YAHOO_CLIENT_ID and FF_YAHOO_CLIENT_SECRET first.")
+        print("Walkthrough: docs/YAHOO_SETUP.md")
+        return 2
+
+    # fspt-w asks for write. Asking is not enough on its own: Read/Write must ALSO be
+    # enabled on the app in YDN, or Yahoo issues a read-only token with no error at all.
+    url = authorize_url(cfg.yahoo_client_id, cfg.yahoo_redirect_uri)
+    print("Opening Yahoo consent page. Accept the self-signed certificate warning.\n")
+    print(url, "\n")
+    webbrowser.open(url)
+
+    code = wait_for_code(cfg.yahoo_redirect_uri)
+
+    try:
+        token = exchange_code(
+            code,
+            client_id=cfg.yahoo_client_id,
+            client_secret=cfg.yahoo_client_secret,
+            redirect_uri=cfg.yahoo_redirect_uri,
+            now_epoch=time.time(),
+        )
+    except FFError as exc:
+        print(f"Token exchange failed: {exc}")
         return 1
 
-    token = resp.json()
-    token.update(
-        {"consumer_key": cfg.yahoo_client_id, "consumer_secret": cfg.yahoo_client_secret}
+    store = TokenStore(Path(cfg.yahoo_token_path))
+    store.save(token)
+    print(f"Token saved to {store.path}, owner-readable only.")
+
+    # Prove it. A token that saved cleanly but cannot read is the failure worth catching
+    # now rather than at 11:58 on a Sunday.
+    auth = YahooAuth(
+        store,
+        client_id=cfg.yahoo_client_id,
+        client_secret=cfg.yahoo_client_secret,
+        redirect_uri=cfg.yahoo_redirect_uri,
     )
-    path = Path(cfg.yahoo_token_path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(token, indent=2))
-    path.chmod(0o600)
-    print(f"Token saved to {path}. It expires in an hour and refreshes automatically.")
-    print("Next: make leagues")
+    client = YahooClient(auth, FileCache(Path(".cache")))
+    try:
+        game_id = client.game_id()
+    except FFError as exc:
+        print(f"\nThe token saved but the first read failed: {exc}")
+        return 1
+
+    print(f"Read check passed. Current NFL game id is {game_id}.")
+    print("It expires in an hour and refreshes itself at 55 minutes.")
+    print("\nNext: make leagues")
     return 0
 
 
