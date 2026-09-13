@@ -24,6 +24,11 @@ DEFAULT_TTL_SECONDS: dict[str, int] = {
     # Sunday morning is a wrong recommendation, not a slightly old one.
     "sleeper_projections": 1800,
     "espn_projections": 3600,
+    # Short on purpose. The owner bids from the Yahoo app, so a balance more than a few
+    # minutes old may already be wrong, and it is re-read before every submission anyway.
+    "yahoo_faab": 120,
+    # Completed transactions never change once written.
+    "yahoo_transactions": 6 * 3600,
     "espn_scoreboard": 900,
     "nflverse_injuries": 6 * 3600,
     "nflverse_snaps": 6 * 3600,

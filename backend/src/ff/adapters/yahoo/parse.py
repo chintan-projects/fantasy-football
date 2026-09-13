@@ -36,6 +36,7 @@ from ff.domain.models import (
     Slot,
     TeamKey,
 )
+from ff.domain.opponent import WinningBid
 
 #: Yahoo slot strings that are not exactly our enum values.
 _SLOT_ALIASES: dict[str, Slot] = {
@@ -300,3 +301,77 @@ def parse_matchup(payload: Any, my_team_key: str, week: int) -> Matchup:
     raise SchemaDrift(
         "yahoo", f"no week {week} matchup found for team {my_team_key}", required=True
     )
+
+
+def parse_faab_balance(payload: Any) -> int:
+    """Remaining FAAB, read off Yahoo's team resource.
+
+    This is the only correct source. We never compute it from our own spend log, because
+    bids placed from the Yahoo app would never appear there and the mirror would drift
+    silently. CLAUDE.md 5.2 requires re-reading it immediately before every submission.
+    """
+    team = find(payload, "team")
+    row = merge(team) if team is not None else merge(payload)
+    balance = row.get("faab_balance")
+    if balance is None:
+        raise SchemaDrift(
+            "yahoo",
+            "team resource carries no 'faab_balance'. Either the league does not use FAAB "
+            "or the response shape changed.",
+            required=True,
+        )
+    return _as_int(balance)
+
+
+def parse_transactions(payload: Any) -> list[WinningBid]:
+    """Completed FAAB adds from /league/{key}/transactions.
+
+    Only ``add`` legs of successful transactions carry a bid. A drop leg, a trade, and a
+    failed claim all appear in the same collection and none of them is a price signal.
+
+    What is NOT here, and cannot be: the losing bids. Yahoo's API reports the winner and
+    the amount the winner paid. So this yields clearing prices, never a bid distribution.
+    See domain/opponent.py and BUGS.yaml KNOWN-001.
+    """
+    collection = find(payload, "transactions")
+    if collection is None:
+        raise SchemaDrift("yahoo", "no 'transactions' collection in the response", required=True)
+
+    out: list[WinningBid] = []
+    for entry in numbered(collection):
+        node = find(entry, "transaction")
+        if node is None:
+            continue
+        row = merge(node)
+        if str(row.get("status", "")) not in ("successful", ""):
+            continue
+        bid_raw = row.get("faab_bid")
+        if bid_raw is None:
+            continue  # a waiver-priority claim or a trade; no price in it
+        timestamp = float(_as_int(row.get("timestamp")))
+
+        players = find(row, "players") or find(node, "players")
+        for player_entry in numbered(players):
+            player_node = find(player_entry, "player")
+            if player_node is None:
+                continue
+            player_row = merge(player_node)
+            data = merge(player_row.get("transaction_data"))
+            if str(data.get("type", "")) != "add":
+                continue
+            destination = data.get("destination_team_key")
+            if destination is None:
+                continue
+            out.append(
+                WinningBid(
+                    team_key=TeamKey(str(destination)),
+                    player_id=str(player_row.get("player_key", "")),
+                    position=parse_position(
+                        player_row.get("display_position") or player_row.get("primary_position")
+                    ),
+                    amount=_as_int(bid_raw),
+                    week=_as_int(row.get("week")),
+                    timestamp=timestamp,
+                )
+            )
+    return out

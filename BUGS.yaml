@@ -1,5 +1,27 @@
 # Every TODO in code needs an entry here. Newest first.
 bugs:
+  - id: KNOWN-001
+    title: Yahoo exposes winning FAAB bids only, so the bid distribution is unobservable
+    found: 2026-09-13
+    status: known_limitation
+    detail: >
+      /league/{key}/transactions reports a completed add with the faab_bid that WON. The
+      bids that lost are not in the API at all. So the opponent model can learn a
+      position's clearing price, and it cannot learn how many managers bid, what the
+      runner-up offered, or how close the auction was. credible_bidders therefore counts
+      who COULD have bid -- managers with the budget and a history at the position -- which
+      is an upper bound on real competition. An upper bound on n makes the (n-1)/n shading
+      weaker, so the error bids HIGH, not low. That direction is written into the
+      docstring and asserted by a test, because a correction whose sign is unknown is worse
+      than no correction at all.
+      Not fixable inside the API. Losing bids are visible in the Yahoo desktop UI's
+      transaction detail view, so a scraper could capture them -- see the PROGRESS.yaml
+      backlog item. Until then the model says what it does not know.
+    severity: medium
+    affects: >
+      backend/src/ff/domain/opponent.py (credible_bidders, expected_clearing_price),
+      and through them every FAAB bid recommendation
+
   - id: BUG-007
     title: ESPN's "no projection" zero was being blended as if it were a forecast
     found: 2026-09-13

@@ -25,17 +25,20 @@ import httpx
 
 from ff.adapters.yahoo.auth import YahooAuth
 from ff.adapters.yahoo.parse import (
+    parse_faab_balance,
     parse_game_id,
     parse_league_settings,
     parse_matchup,
     parse_players,
     parse_roster,
+    parse_transactions,
 )
 from ff.core.cache import DEFAULT_TTL_SECONDS, FileCache
 from ff.core.errors import AuthExpired, SchemaDrift, SourceUnavailable, Throttled
 from ff.core.logging import get_logger
 from ff.core.retry import YAHOO_THROTTLE_STATUS, with_backoff
 from ff.domain.models import LeagueSettings, Matchup, Player, Roster
+from ff.domain.opponent import WinningBid
 
 BASE = "https://fantasysports.yahooapis.com/fantasy/v2"
 
@@ -255,6 +258,43 @@ class YahooClient:
                 DEFAULT_TTL_SECONDS["yahoo_freeagents"],
             )
             page = parse_players(payload)
+            out.extend(page)
+            if len(page) < PAGE_SIZE:
+                break
+        return out[:limit]
+
+    def faab_balance(self, team_key: str | None = None) -> int:
+        """Remaining FAAB budget, live from Yahoo.
+
+        Deliberately uncached beyond a short TTL and re-read immediately before every
+        submission (CLAUDE.md 5.2). The owner bids from the Yahoo app sometimes, so any
+        value older than a few minutes may already be wrong.
+        """
+        team = team_key or self.team_key
+        if not team:
+            raise SourceUnavailable("yahoo", "FF_YAHOO_TEAM_KEY is not set", required=True)
+        payload = self.get(
+            f"/team/{team}",
+            f"yahoo_faab:{team}",
+            DEFAULT_TTL_SECONDS["yahoo_faab"],
+        )
+        return parse_faab_balance(payload)
+
+    def transactions(self, limit: int = 100) -> list[WinningBid]:
+        """Completed league transactions, newest first, paged.
+
+        The opponent model reads this. It yields winning bids only -- see
+        domain/opponent.py for why that bounds what can be inferred.
+        """
+        key = self.league_key()
+        out: list[WinningBid] = []
+        for start in range(0, limit, PAGE_SIZE):
+            payload = self.get(
+                f"/league/{key}/transactions;start={start};count={PAGE_SIZE};type=add",
+                f"yahoo_transactions:{key}:{start}",
+                DEFAULT_TTL_SECONDS["yahoo_transactions"],
+            )
+            page = parse_transactions(payload)
             out.extend(page)
             if len(page) < PAGE_SIZE:
                 break
