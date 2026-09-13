@@ -64,6 +64,16 @@ ESPN_POSITION_BY_ID: dict[int, Position] = {
     16: Position.DEF,
 }
 
+#: Position strings that are not exactly our enum names. Every source spells team defense
+#: differently and at least one spells kicker differently.
+POSITION_ALIASES: dict[str, Position] = {
+    "DST": Position.DEF,
+    "D/ST": Position.DEF,
+    "DEF": Position.DEF,
+    "D": Position.DEF,
+    "PK": Position.K,
+}
+
 #: The same franchise under four different abbreviations across four sources. Yahoo's
 #: spelling is the canonical one, because Yahoo is the system of record for the roster.
 _TEAM_ALIASES: dict[str, str] = {
@@ -131,3 +141,23 @@ def match_key(name: str, position: Position, team: str | None = None) -> str:
     if position is Position.DEF:
         return f"DEF:{canonical_team(team)}"
     return f"{position.value}:{normalize_name(name)}"
+
+
+def parse_position(raw: object) -> Position | None:
+    """One position string from any source, or None if it is not a position we model.
+
+    Sources hand back multi-position strings ("RB,WR"); the first one we recognize is the
+    player's primary. A None result is not an error on its own -- an ALL-position pull
+    contains linebackers and punters, and those are meant to be skipped.
+    """
+    if raw is None:
+        return None
+    for token in str(raw).split(","):
+        cleaned = token.strip().upper()
+        if cleaned in POSITION_ALIASES:
+            return POSITION_ALIASES[cleaned]
+        try:
+            return Position(cleaned)
+        except ValueError:
+            continue
+    return None

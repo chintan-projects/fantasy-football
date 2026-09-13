@@ -1,5 +1,17 @@
 # Every TODO in code needs an entry here. Newest first.
-bugs: []
+bugs:
+  - id: BUG-001
+    title: mypy --strict fails on adapters/yahoo/executors.py
+    found: 2026-09-12
+    detail: >
+      Two errors, both pre-existing and both in the write path: the registry decorator is
+      typed Callable[[], T] but receives a class, and the getattr call carries an unused
+      type: ignore. `make check` does not catch them because it runs mypy over domain/ and
+      services/ only, per CLAUDE.md 2.6. Every other adapter passes mypy --strict.
+      Left alone deliberately -- the write path is out of scope for M1 and M2 and is not
+      worth touching while M5 is blocked on Yahoo write access.
+    severity: low
+    repro: cd backend && uv run mypy src/ff/adapters
 
 known_limitations:
   - id: LIM-1

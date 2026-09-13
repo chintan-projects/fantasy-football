@@ -1,0 +1,185 @@
+{
+  "sport": "NFL",
+  "year": 2026,
+  "week": 1,
+  "position": "ALL",
+  "scoring": "PPR",
+  "count": 25,
+  "players": [
+    {
+      "player_id": 16000,
+      "player_name": "Bijan Robinson",
+      "player_team_id": "ATL",
+      "player_position_id": "RB",
+      "points": 17.8
+    },
+    {
+      "player_id": 16001,
+      "player_name": "Jahmyr Gibbs",
+      "player_team_id": "DET",
+      "player_position_id": "RB",
+      "points": 18.4
+    },
+    {
+      "player_id": 16002,
+      "player_name": "Malik Nabers",
+      "player_team_id": "NYG",
+      "player_position_id": "WR",
+      "points": 15.1
+    },
+    {
+      "player_id": 16003,
+      "player_name": "Amon-Ra St. Brown",
+      "player_team_id": "DET",
+      "player_position_id": "WR",
+      "points": 16.2
+    },
+    {
+      "player_id": 16004,
+      "player_name": "Trey McBride",
+      "player_team_id": "ARI",
+      "player_position_id": "TE",
+      "points": 12.6
+    },
+    {
+      "player_id": 16005,
+      "player_name": "Jayden Daniels",
+      "player_team_id": "WAS",
+      "player_position_id": "QB",
+      "points": 21.9
+    },
+    {
+      "player_id": 16006,
+      "player_name": "Rome Odunze",
+      "player_team_id": "CHI",
+      "player_position_id": "WR",
+      "points": 10.4
+    },
+    {
+      "player_id": 16007,
+      "player_name": "Jake Bates",
+      "player_team_id": "DET",
+      "player_position_id": "K",
+      "points": 8.1
+    },
+    {
+      "player_id": 16008,
+      "player_name": "Denver Broncos",
+      "player_team_id": "DEN",
+      "player_position_id": "DST",
+      "points": 7.9
+    },
+    {
+      "player_id": 16009,
+      "player_name": "Tyrone Tracy Jr.",
+      "player_team_id": "NYG",
+      "player_position_id": "RB",
+      "points": 9.3
+    },
+    {
+      "player_id": 16010,
+      "player_name": "Jordan Addison",
+      "player_team_id": "MIN",
+      "player_position_id": "WR",
+      "points": 10.9
+    },
+    {
+      "player_id": 16011,
+      "player_name": "Josh Allen",
+      "player_team_id": "BUF",
+      "player_position_id": "QB",
+      "points": 23.6
+    },
+    {
+      "player_id": 16012,
+      "player_name": "Saquon Barkley",
+      "player_team_id": "PHI",
+      "player_position_id": "RB",
+      "points": 18.0
+    },
+    {
+      "player_id": 16013,
+      "player_name": "Kyren Williams",
+      "player_team_id": "LAR",
+      "player_position_id": "RB",
+      "points": 14.2
+    },
+    {
+      "player_id": 16014,
+      "player_name": "Ja'Marr Chase",
+      "player_team_id": "CIN",
+      "player_position_id": "WR",
+      "points": 18.9
+    },
+    {
+      "player_id": 16015,
+      "player_name": "Puka Nacua",
+      "player_team_id": "LAR",
+      "player_position_id": "WR",
+      "points": 16.6
+    },
+    {
+      "player_id": 16016,
+      "player_name": "George Kittle",
+      "player_team_id": "SF",
+      "player_position_id": "TE",
+      "points": 13.4
+    },
+    {
+      "player_id": 16017,
+      "player_name": "Jaxon Smith-Njigba",
+      "player_team_id": "SEA",
+      "player_position_id": "WR",
+      "points": 14.8
+    },
+    {
+      "player_id": 16018,
+      "player_name": "Chris Boswell",
+      "player_team_id": "PIT",
+      "player_position_id": "K",
+      "points": 8.6
+    },
+    {
+      "player_id": 16019,
+      "player_name": "Houston Texans",
+      "player_team_id": "HOU",
+      "player_position_id": "DST",
+      "points": 8.4
+    },
+    {
+      "player_id": 16020,
+      "player_name": "Tank Bigsby",
+      "player_team_id": "JAC",
+      "player_position_id": "RB",
+      "points": 7.2
+    },
+    {
+      "player_id": 16021,
+      "player_name": "Jaylen Wright",
+      "player_team_id": "MIA",
+      "player_position_id": "RB",
+      "points": 7.8
+    },
+    {
+      "player_id": 16022,
+      "player_name": "Luke McCaffrey",
+      "player_team_id": "WSH",
+      "player_position_id": "WR",
+      "points": 5.4
+    },
+    {
+      "player_id": 16023,
+      "player_name": "Cade Otton",
+      "player_team_id": "TB",
+      "player_position_id": "TE",
+      "points": 8.8
+    },
+    {
+      "player_id": 16024,
+      "player_name": "Fred Warner",
+      "player_team_id": "SF",
+      "player_position_id": "LB",
+      "points": 0.0
+    }
+  ]
+}

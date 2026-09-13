@@ -23,6 +23,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ff.adapters._common import parse_position
 from ff.core.errors import SchemaDrift
 from ff.domain.models import (
     LeagueKey,
@@ -30,20 +31,11 @@ from ff.domain.models import (
     Matchup,
     Player,
     PlayerId,
-    Position,
     Roster,
     RosterSpot,
     Slot,
     TeamKey,
 )
-
-#: Yahoo position strings that are not exactly our enum names.
-_POSITION_ALIASES: dict[str, Position] = {
-    "DST": Position.DEF,
-    "D/ST": Position.DEF,
-    "D": Position.DEF,
-    "PK": Position.K,
-}
 
 #: Yahoo slot strings that are not exactly our enum values.
 _SLOT_ALIASES: dict[str, Slot] = {
@@ -129,21 +121,6 @@ def parse_game_id(payload: Any) -> str:
     if game_id is None:
         raise SchemaDrift("yahoo", "/game/nfl returned no game_id", required=True)
     return str(game_id)
-
-
-def parse_position(raw: Any) -> Position | None:
-    """Yahoo's display_position can be multi-position ("RB,WR"). Take the first we know."""
-    if raw is None:
-        return None
-    for token in str(raw).split(","):
-        token = token.strip().upper()
-        if token in _POSITION_ALIASES:
-            return _POSITION_ALIASES[token]
-        try:
-            return Position(token)
-        except ValueError:
-            continue
-    return None
 
 
 def parse_slot(raw: Any) -> Slot | None:
