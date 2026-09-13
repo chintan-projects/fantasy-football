@@ -59,7 +59,9 @@ warn_unreachable = true
 files = ["src/ff"]
 
 [[tool.mypy.overrides]]
-module = ["yahoo_fantasy_api.*", "yahoo_oauth.*"]
+# Third-party packages that ship no type information. nflreadpy is 0.1.5 and has no
+# py.typed marker; to_rows() narrows what it returns back to typed dicts immediately.
+module = ["yahoo_fantasy_api.*", "yahoo_oauth.*", "nflreadpy.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
