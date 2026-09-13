@@ -12,15 +12,29 @@ Read this file before doing anything. It is the contract.
 **One sentence:** every Sunday morning it tells me who to start and why, and every
 Tuesday night it tells me what to bid on whom out of my $100 FAAB — and I click approve.
 
-**Success test:** I stop opening the Yahoo app to make decisions. I open this instead,
-read one screen, click approve, and I am done in under two minutes.
+**Success test:** I stop opening the Yahoo app to make decisions. I ask Claude, read one
+answer, say yes, and I am done in under two minutes.
+
+**Where it lives.** An MCP server, connected to Claude as a custom remote connector. The
+question gets asked wherever Claude already is — phone, desktop — instead of at a URL that
+has to be remembered and visited. The PRD's first-listed failure mode is "I stop opening
+it", and a screen that has to be visited on a Sunday morning loses to the Yahoo app that is
+already open. Changed 2026-09-13; see `docs/DECISIONS.md` for what would change our mind.
+
+**The rule that follows from that, and it is not negotiable: tools return decisions, not
+raw data.** Every tool that makes a judgment calls `services/`, persists the input snapshot
+it decided on, and returns the computed answer with its reasoning. A tool that hands Claude
+a roster and lets it reason to a verdict produces an answer that is not reproducible, whose
+inputs were never snapshotted, and which can never be scored — and §2.5 calls that scoring
+the single most important requirement in the project. Raw-data tools exist only where a
+human genuinely wants to browse: the roster listing and the transaction log.
 
 **Autonomy model:** recommend, human approves. Nothing is written to Yahoo without an
 explicit approval action. This is not a preference; it is an architectural invariant.
-See §5.
+See §5. In tool terms: no single tool both prices a bid and submits it.
 
-**Non-goals.** Not a DFS optimizer. Not a multi-league SaaS. Not a chatbot. Not a
-league-mate-facing product. One user, one league at a time, one decision per screen.
+**Non-goals.** Not a DFS optimizer. Not a multi-league SaaS. Not a general chatbot. Not a
+league-mate-facing product. One user, one league at a time, one decision per answer.
 
 ---
 
@@ -50,8 +64,9 @@ the concrete second caller that justifies it. If it cannot, delete the layer.
   and `backend/src/ff/domain/` (the types everything speaks).
 - No copy-paste between adapters. If two providers need the same normalization, it goes
   in `adapters/_common.py`.
-- The frontend and backend share types via generated OpenAPI client — hand-written
-  duplicate TypeScript interfaces are a defect.
+- MCP tool functions are shaping code and nothing else: unpack arguments, call one
+  service, shape the answer. A judgment in a tool body is the same defect as business
+  logic in a route handler.
 - **Anti-rule:** do not extract a helper used once. Reuse is discovered, not designed.
 
 ### 2.2 Modularity
@@ -255,11 +270,16 @@ is ~80% of the value and depends on nothing Yahoo has to approve.
 backend/src/ff/
   core/       config, logging, errors, retry, cache, clock
   domain/     pure types + decision math (no I/O — enforced in CI)
-  adapters/   yahoo/ espn/ sleeper/ nflverse/ odds/ weather/
-  services/   projections, lineup, faab, approvals, calibration
-  api/        FastAPI routers
-frontend/     Next.js — /lineup, /waivers, /history
-docs/         ARCHITECTURE.md PRD.md DECISION_MATH.md DATA_SOURCES.md YAHOO_SETUP.md DECISIONS.md
+  adapters/   yahoo/ espn/ sleeper/ nflverse/ store (SQLite)
+  services/   week, projections, recommend, waivers, approvals, calibration
+  api/        mcp.py (the front door) · auth.py · deps.py · scheduler.py · app.py (demoted)
+frontend/     Next.js — demoted 2026-09-13, kept not deleted. See frontend/README.md
+docs/         ARCHITECTURE.md PRD.md DEPLOY.md DECISION_MATH.md DATA_SOURCES.md YAHOO_SETUP.md DECISIONS.md
+Dockerfile · fly.toml — the deployed MCP server
 ```
 
-Commands: `make setup` `make dev` `make test` `make check` `make probe`
+Commands: `make setup` `make mcp` `make mcp-demo` `make test` `make check` `make probe`
+
+`make mcp-demo` runs all nine tools against recorded fixtures and prints what Claude would
+see. It is the fastest way to check a change end to end, and it is how BUG-008 was found —
+every unit test passed the whole time, because each half was correct on its own.

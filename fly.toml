@@ -1,0 +1,51 @@
+# Fly deployment for the MCP server.
+#
+# Two constraints shape this file and both are load-bearing:
+#
+# 1. A Fly volume attaches to exactly one machine, and a machine mounts one volume. The
+#    SQLite database lives on the volume, so the scheduled jobs cannot be a second machine
+#    reading the same file -- they run inside this process. See
+#    backend/src/ff/api/scheduler.py.
+# 2. auto_stop_machines would suspend the process between tool calls, and suspend the
+#    scheduler with it. A stopped machine does not run Tuesday's job. So it stays up.
+#
+# Claude reaches this over the public internet from Anthropic's egress range
+# (160.79.104.0/21) and needs a real HTTPS URL. Fly terminates TLS.
+
+app = "ff-copilot"
+primary_region = "sjc"   # the league is Pacific time, and so are the job schedules
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  FF_MCP_HOST = "0.0.0.0"
+  FF_MCP_PORT = "8080"
+  FF_DATABASE_PATH = "/data/ff.db"
+  FF_YAHOO_TOKEN_PATH = "/data/yahoo.json"
+  # Dry run is the default and stays the default in production until probe_write.py proves
+  # the write path (CLAUDE.md 5.5 and section 6).
+  FF_WRITE_ENABLED = "false"
+  FF_WRITE_EXECUTOR = "dryrun"
+
+[mounts]
+  source = "ff_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false   # see note 2 above
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/health"
+    timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"   # numpy plus a 20k-draw simulation; raise if a job gets OOM-killed

@@ -1,0 +1,99 @@
+# Completed work and closed questions. Never auto-loaded. Newest first.
+project: fantasy-football-copilot
+
+milestones:
+  - id: M4b
+    name: MCP front door
+    status: done
+    completed: 2026-09-13
+    notes: >
+      The product's entry point moved from a web app to an MCP server. domain/, adapters/,
+      services/ and core/ were not touched. See docs/DECISIONS.md for the pivot and what
+      would change our mind.
+    tasks:
+      - done: Nine tools in api/mcp.py; six read, two write to our own database, one submits
+      - done: Every judging tool routes through services/ and persists its input snapshot
+      - done: Two-step write -- ff_propose_claim issues an approval, ff_confirm spends it
+      - done: Approvals moved from memory to SQLite, with the approved payload stored beside
+      - done: GitHub OAuth with a single-login gate (api/auth.py)
+      - done: In-process weekly scheduler, Tuesday 20:00 and Sunday 09:00 Pacific
+      - done: Dockerfile, fly.toml, docs/DEPLOY.md
+      - done: tests/fakes.py and scripts/mcp_demo.py run the whole thing against fixtures
+      - done: BUG-008 found by reading the demo output, not by a failing test
+
+  - id: M4
+    name: Waivers and FAAB
+    status: done
+    completed: 2026-09-13
+    tasks:
+      - done: Board ranked by rest-of-season VORP over my OWN current replacement
+      - done: Opponent model derives interested_bidders from the league transaction log
+      - done: Bid recommendation with the full shading breakdown and its provenance
+      - todo: Sleeper trending adds, normalized by availability
+
+  - id: M3
+    name: Lineup recommendation end to end
+    status: done
+    completed: 2026-09-13
+    tasks:
+      - done: services/week.py assembles one week's inputs once for all three decisions
+      - done: services/recommend.py ranks lineups by win probability, not by points
+      - done: Every input set snapshotted, so a backtest is a replay and not a re-fetch
+      - done: "Too close to call" is a real output, and never a stand-in for unsimulated
+
+  - id: M2
+    name: Projections and blending
+    status: done
+    completed: 2026-09-13
+    notes: >
+      ESPN, Sleeper and nflverse all verified against live endpoints. FantasyPros was
+      dropped: it costs $8.99/mo and Sleeper serves Rotowire's numbers for free. The cost
+      of dropping it is real and is written down -- rank_std was the only direct measure
+      of expert disagreement, so epistemic spread now rests on the gap between exactly two
+      numbers. Measured live: 427 players matched, median disagreement 0.97 points.
+    tasks:
+      - done: ESPN kona_player_info adapter, schema validated on every fetch, never required
+      - done: Sleeper projections adapter (Rotowire numbers, free, 470 players scored)
+      - done: nflverse injuries via nflreadpy (NOT nfl_data_py, which is archived)
+      - done: services/projections blends sources; one source raises in three places
+      - todo: Aleatoric variance from game logs, shrunk toward the position prior
+
+  - id: M1
+    name: Yahoo read path
+    status: done
+    completed: 2026-09-12
+    notes: >
+      Code complete and tested. Not yet run against a live league -- see the open question
+      in PROGRESS.yaml. Fixtures are hand-built from documented shapes.
+    tasks:
+      - done: OAuth over a local HTTPS listener; make auth ends with a real read call
+      - done: Token refresh on age at 55 minutes, not reactively on a 401
+      - done: League settings, roster by week, matchup, free agents with paging
+      - done: FAAB balance and the league transaction log
+      - done: game_id resolved from GET /game/nfl at runtime, never hardcoded
+      - done: status_code checked before every parse; HTTP 999 is a throttle, not JSON
+      - done: All Yahoo calls serialized behind one lock; per-source TTL cache
+      - done: Applied for API access at sports.yahoo.com/developer/access
+
+  - id: M0
+    name: Project setup
+    status: done
+    completed: 2026-09-12
+    notes: CLAUDE.md, hooks, skills, docs, backend skeleton.
+
+closed_questions:
+  - id: fantasypros-key
+    question: Do the FantasyPros response shapes match what the adapter expects?
+    closed: 2026-09-13
+    answer: >
+      Moot. FantasyPros was dropped rather than bought. Sleeper's free projections endpoint
+      serves Rotowire's numbers and is genuinely independent of ESPN, so the ensemble
+      argument survives. The adapter is still in the tree, unused and unrequired.
+
+  - id: sleeper-fixtures
+    question: Should adapters/sleeper.py get fixtures like every other adapter?
+    closed: 2026-09-13
+    answer: >
+      Yes, and it has them: projections_week2.json recorded live, five malformed fixtures,
+      and 20 tests. It is now a required projection source, so the rule applies to it more
+      strongly than when the question was asked.

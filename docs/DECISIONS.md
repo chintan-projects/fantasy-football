@@ -5,6 +5,88 @@ Format: date · decision · why · what would change our mind.
 
 ---
 
+## 2026-09-13 · The front door is an MCP server, not a web app
+
+The PRD's first-listed failure mode is "I stop opening it." A web app on a Sunday morning
+competes with the Yahoo app for the same two minutes and loses, because the Yahoo app is
+already open. A Claude connector does not have to be visited: the question gets asked in
+the place the owner is already typing.
+
+Nothing under this changes. `domain/`, `adapters/`, `services/` and `core/` are untouched;
+the decision math is the same math. Only the entry point moved, and the old FastAPI app and
+Next.js frontend are demoted rather than deleted (see `frontend/README.md`).
+
+**Changes our mind:** a month of use where the tools go uncalled, or a decision that
+genuinely needs a screen — a calibration chart is the obvious candidate, because a table of
+projected-versus-actual is worse in prose than in pixels. Either brings the frontend back as
+a second surface, not as a replacement.
+
+## 2026-09-13 · MCP tools return decisions, never raw data for the model to reason over
+
+The tempting shape is `ff_get_roster` plus `ff_get_projections`, letting Claude reason to an
+answer. It is the wrong shape, and the reason is not taste.
+
+A recommendation the model reasons to is not reproducible, its inputs are never snapshotted,
+and nothing about it can be scored later. CLAUDE.md 2.5 calls calibration the single most
+important observability requirement in the project: the app must be able to answer "was it
+right?". A verdict that exists only in one conversation cannot be graded, so a tool set that
+produces those verdicts quietly deletes the ability to know whether any of this works.
+
+So every tool that makes a judgment calls `services/`, persists its input snapshot, and
+returns the computed answer with its reasoning. Raw-data tools exist only where a human
+genuinely wants to browse: `ff_my_roster` and `ff_league_transactions`, both of which say in
+their own descriptions to use the judging tool instead.
+
+**Changes our mind:** nothing short of abandoning calibration, which would be abandoning the
+project's stated purpose.
+
+## 2026-09-13 · Spending money takes two tool calls
+
+`ff_propose_claim` prices a bid and issues an approval id. `ff_confirm` spends it. No tool
+does both.
+
+A single `ff_submit_claim(player, bid)` would be a tool the model can call on its own
+initiative, and CLAUDE.md 5.1 requires a recorded human yes against that exact payload. The
+split makes that structural rather than aspirational: the approval is single use, bound to
+one payload and one week, expires after six hours, and the remaining budget is re-read from
+Yahoo immediately before submission — a bid over it is rejected, never quietly reduced.
+
+The approved payload is stored alongside the approval rather than recomputed at confirm
+time. Recomputing would mean the owner confirms a number they never saw.
+
+**Changes our mind:** nothing. This is the invariant the product is built around.
+
+## 2026-09-13 · GitHub OAuth for a server with one user
+
+A shared secret in a header is the obvious answer for an audience of one, and Claude does
+not really support it. Its connectors accept OAuth with dynamic client registration, OAuth
+with client id metadata documents, or no auth. `static_headers` is beta, is entered by an
+*organization administrator* rather than a user, and needs Anthropic approval for any
+non-standard header name. Machine-to-machine `client_credentials` is explicitly unsupported:
+every connection requires a human to consent. `[empirical]` — Anthropic's connector docs,
+read 2026-09-13.
+
+So: FastMCP's `GitHubProvider`, which presents the DCR interface Claude wants over one
+pre-registered GitHub OAuth app. GitHub authenticates several hundred million people, so a
+second gate refuses any login but the configured one at the first tool call.
+
+**Changes our mind:** `static_headers` leaving beta for individual users. It is a simpler
+story and worth switching to.
+
+## 2026-09-13 · Fly, with the scheduler inside the server process
+
+MCP is request-driven. Nothing fires without a tool call, so the Tuesday waiver snapshot and
+the Sunday lineup snapshot still need a clock — moving to MCP did not remove that need.
+
+The natural design is a separate scheduled machine sharing the database. Fly does not allow
+it: a volume attaches to exactly one machine, and a machine mounts one volume. `[empirical]`
+So the jobs run as asyncio tasks in the serving process, off the event loop, and
+`auto_stop_machines` is off with `min_machines_running = 1` — a suspended machine runs no
+jobs. The cost is a few dollars a month for a machine that is idle most of the week.
+
+**Changes our mind:** outgrowing SQLite. A managed Postgres would let the jobs be their own
+machine and let the server sleep. Nothing about the current data volume argues for it.
+
 ## 2026-09-12 · Yahoo JSON is parsed key-first, not by position
 
 Yahoo interleaves sub-resources as positional siblings, so `/players/percent_owned` puts the

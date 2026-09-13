@@ -6,26 +6,81 @@ Read `CLAUDE.md` §2 first. This document says how the principles land in code.
 
 ```
                     ┌──────────────┐
-   browser  ───────▶│  Next.js UI  │  /lineup  /waivers  /history
-                    └──────┬───────┘
-                           │ typed client generated from OpenAPI
-                    ┌──────▼───────┐
-                    │  api/        │  FastAPI. Thin. No logic.
-                    └──────┬───────┘
+   Claude   ───────▶│  api/mcp.py  │  nine tools, over Streamable HTTP
+   (phone,          └──────┬───────┘  auth.py gates it to one GitHub login
+    desktop)               │          scheduler.py runs the two weekly jobs
                     ┌──────▼───────┐
                     │  services/   │  orchestration: fetch → compute → decide
                     └──┬────────┬──┘
             ┌──────────▼──┐  ┌──▼───────────┐
             │  domain/    │  │  adapters/   │  yahoo espn sleeper
-            │  pure math  │  │  I/O only    │  nflverse odds weather
+            │  pure math  │  │  I/O only    │  nflverse store (SQLite)
             └─────────────┘  └──────────────┘
                     ┌──────────────┐
                     │  core/       │  config logging errors retry cache clock
                     └──────────────┘
+
+   ( frontend/ — Next.js, demoted 2026-09-13. Kept, not built or deployed. )
+   ( api/app.py — the FastAPI app it talked to. Same status.               )
 ```
 
 Dependencies point one way. `domain/` imports nothing but `core/` and the standard library.
 CI greps for network imports in `domain/` and a PostToolUse hook blocks them at edit time.
+
+The MCP layer occupies exactly the position the HTTP layer did, and is bound by the same
+rule: unpack arguments, call one service, shape the answer. A judgment inside a tool body
+is the same defect as business logic in a route handler.
+
+## Tools return decisions, not data
+
+This is the design rule the whole MCP layer exists to enforce, so it goes near the top.
+
+The wrong shape is `ff_get_roster` plus `ff_get_projections`, with the model reasoning to an
+answer. It looks flexible and it quietly destroys the project's purpose: a verdict the model
+reasoned to has no persisted input snapshot, is not reproducible, and can never be scored
+against what actually happened. `CLAUDE.md` §2.5 calls that scoring the single most
+important observability requirement here.
+
+So the six judging tools each call `services/`, persist the snapshot they decided on, and
+return the computed answer with its reasoning attached. Two tools return raw data —
+`ff_my_roster` and `ff_league_transactions` — because a human sometimes just wants to look,
+and both say in their own descriptions to use the judging tool for the decision.
+
+Tool descriptions are documentation that a model reads and acts on, so the honesty rule in
+`CLAUDE.md` §3 applies to them: every claim is labelled `[empirical]`, `[theory]` or
+`[folk]`, and `tests/test_mcp.py` asserts that the caveats are still there.
+
+## Spending money takes two calls
+
+`ff_propose_claim` prices a bid, writes an approval row, and returns the plan plus an
+approval id. It submits nothing. `ff_confirm` spends that approval and only that approval.
+
+The approval is single use (enforced by a conditional `UPDATE`, not by a set in memory),
+bound to one payload hash and one week, and expires after six hours. The approved payload is
+stored beside it, so confirm submits the number the owner saw rather than re-deriving one
+that has since moved. The FAAB balance is re-read from Yahoo immediately before submission
+and a bid over it is rejected, never clamped.
+
+The approvals table is in SQLite rather than in memory for a plain reason: propose and
+confirm are two separate requests and may not be the same process.
+
+## What Yahoo owns and what we own
+
+Yahoo is the system of record for **state**. This app is the system of record for
+**judgment**. Getting that line wrong is how a mirror drifts.
+
+| Yahoo owns — never mirrored | We own — Yahoo has no concept of it |
+|---|---|
+| `faab_balance` on the team resource | Our blended projections, and the input snapshot at decision time |
+| `/league/{key}/transactions` | The reasoning behind each recommendation |
+| Rosters, including past weeks via `roster;week=N` | Recommended versus what was actually set |
+| `uses_faab` and the waiver rules | Preferences that change the math |
+| | The derived opponent model |
+
+The FAAB balance is the sharp case. A local spend log would never see a bid placed from the
+Yahoo app, so it would be quietly wrong — and a balance that is quietly wrong is worse than
+one that is missing. `adapters/store.py` therefore has no `faab_balance` column, no roster
+table and no transactions table, and a test asserts that it still does not.
 
 ## Why domain/ is pure
 
@@ -116,16 +171,36 @@ important observability requirement in the project (`CLAUDE.md` §2.5).
 
 ## Hosting
 
-Cloud-hosted so it works from a phone and so scheduled jobs fire without a laptop being awake.
+A custom connector is reached over the public internet, from Anthropic's egress range
+`160.79.104.0/21`. There is no local option: cloud deploy is mandatory, not a convenience.
+Full walkthrough in `docs/DEPLOY.md`.
 
-- Backend: one container, Fly.io or Railway. Both do cron.
-- Frontend: Vercel, or served by the same container to keep it to one deploy.
-- Scheduled work: Sunday 09:00 PT lineup check, Tuesday 18:00 PT waiver analysis, and a
-  Sunday 11:15 PT last-call re-check for late inactives.
-- Auth: single-user. A long random token in a cookie is enough. Do not build accounts.
+- **One Fly machine**, one container, one 1 GB volume at `/data` holding the SQLite database
+  and the Yahoo token.
+- **The scheduler runs inside that process.** A Fly volume attaches to exactly one machine
+  and a machine mounts one volume, so the jobs cannot be a second machine reading the same
+  file. `[empirical]` And `auto_stop_machines` is off with `min_machines_running = 1`,
+  because a suspended machine runs no jobs. MCP is request-driven and does nothing on its
+  own — moving to MCP did not remove the need for a clock.
+- **Scheduled work:** Tuesday 20:00 Pacific snapshots the waiver board *before* waivers
+  process overnight; Sunday 09:00 Pacific snapshots the lineup inputs while the roster can
+  still be changed. Neither notifies anyone and neither writes to Yahoo. They capture the
+  inputs at the moment the decision was live, which is what makes scoring it later possible
+  at all — grading a 9am decision against a 3pm world measures the wrong thing.
+- **Auth is OAuth, even for one user.** Claude's connectors accept OAuth with dynamic client
+  registration, OAuth with client id metadata, or nothing. A bearer token is the
+  `static_headers` type: beta, entered by an organization administrator, and non-standard
+  header names need Anthropic approval. Machine-to-machine `client_credentials` is not
+  supported at all — every connection requires a human to consent. `[empirical]` FastMCP's
+  `GitHubProvider` gives Claude the DCR interface it wants over one pre-registered GitHub
+  OAuth app, and `OnlyTheOwner` refuses every login but the configured one.
 
-Note the timing constraint: Yahoo load spikes Sunday 11:00–13:00 ET as lineups lock. Submit
-well before kickoff with retry budget left.
+Two hard limits worth designing against: a tool result is capped near 150,000 characters and
+a tool call times out at 240 seconds. `[empirical]` The board caps at 50 targets for the
+first; a 20,000-draw simulation takes a few seconds, so the second has a wide margin.
+
+Note the timing constraint that has not changed: Yahoo load spikes Sunday 11:00–13:00 ET as
+lineups lock. Submit well before kickoff with retry budget left.
 
 ## Testing
 
@@ -134,5 +209,10 @@ well before kickoff with retry budget left.
 - `adapters/` — recorded fixtures. **Every adapter has a fixture of a malformed response**,
   because these sources change without notice.
 - `services/` — in-memory fakes for adapters.
+- `api/mcp.py` — the tools are exercised end to end against `tests/fakes.py`, which replays
+  the recorded Yahoo fixtures through the real parsers. The tool *surface* is tested too:
+  Claude sees only names, descriptions and annotations, so a tool that stops being read-only
+  or a description that drops its caveat is a defect nothing else would catch.
+  `scripts/mcp_demo.py` runs the same path and prints it.
 - Backtest harness — replay stored snapshots, score strategies against actual outcomes.
   A strategy that has not been backtested is a hypothesis, not a feature.
