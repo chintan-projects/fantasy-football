@@ -17,7 +17,6 @@ from ff.domain.models import (
     LineupPlan,
     Player,
     PlayerId,
-    Projection,
     SourceStatus,
     TransactionKey,
 )
@@ -51,12 +50,22 @@ class WriteResult:
 
 
 class ProjectionSource(Protocol):
-    """One forecaster. At least two must be configured -- ensembles win."""
+    """One forecaster. At least two must be configured -- ensembles win.
+
+    ``weekly`` takes ``Player`` rather than ``PlayerId`` because no source speaks Yahoo's
+    player keys: ESPN has integer ids of its own and FantasyPros has another set, so both
+    implementations join on name, position and team. Handing them a bare key would force
+    each one to look the player back up.
+
+    It returns a mean, not a ``Projection``. A single source has no epistemic spread --
+    that quantity only exists across sources -- so building a distribution here would mean
+    inventing the uncertainty. ``domain.blend`` builds the ``Projection`` from the means.
+    """
 
     name: str
     required: bool
 
-    def weekly(self, week: int, players: list[PlayerId]) -> dict[PlayerId, Projection]: ...
+    def weekly(self, week: int, players: list[Player]) -> dict[PlayerId, float]: ...
     def status(self) -> SourceStatus: ...
 
 
