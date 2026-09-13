@@ -32,7 +32,10 @@ from typing import Annotated, Any
 from fastmcp import FastMCP
 from mcp.types import ToolAnnotations
 from pydantic import Field
+from starlette.responses import JSONResponse
 
+from ff.api import scheduler
+from ff.api.auth import OnlyTheOwner, github_auth
 from ff.api.deps import Deps, default_deps
 from ff.core.errors import FFError
 from ff.core.logging import get_logger
@@ -71,10 +74,10 @@ def _read_only(idempotent: bool = True) -> ToolAnnotations:
     )
 
 
-def build_server(deps: Deps | None = None) -> FastMCP:
+def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
     """Construct the server. Dependencies are injected so tests drive the real tools."""
     d = deps if deps is not None else default_deps()
-    mcp: FastMCP = FastMCP(name="fantasy-football-copilot", instructions=INSTRUCTIONS)
+    mcp: FastMCP = FastMCP(name="fantasy-football-copilot", instructions=INSTRUCTIONS, auth=auth)
     approvals = ApprovalStore(d.store)
 
     def _week(week: int | None) -> int:
@@ -558,6 +561,58 @@ def _find_target(deps: Deps, bundle: Any, player: str, week: int) -> Any:
     return None
 
 
-def http_app(deps: Deps | None = None) -> Any:
-    """ASGI app for uvicorn. Streamable HTTP at /mcp, which is what Claude expects."""
-    return build_server(deps).http_app(transport="http")
+def http_app(deps: Deps | None = None, *, authenticate: bool | None = None) -> Any:
+    """The ASGI app uvicorn serves. Streamable HTTP at /mcp, which is what Claude expects.
+
+    Auth is on whenever the GitHub credentials are configured. Turning it off is for
+    running against fixtures on a laptop; a deployment without them is a public server for
+    a private league, so ``make deploy`` checks for them and ``/health`` reports it.
+    """
+    d = deps if deps is not None else default_deps()
+    wants_auth = (
+        authenticate
+        if authenticate is not None
+        else bool(d.config.github_client_id and d.config.allowed_github_login)
+    )
+    mcp = build_server(d, auth=github_auth(d.config) if wants_auth else None)
+    if wants_auth:
+        mcp.add_middleware(OnlyTheOwner(d.config.allowed_github_login))
+    else:
+        log.warning("mcp_unauthenticated", detail="No GitHub credentials; auth is off.")
+
+    @mcp.custom_route("/health", methods=["GET"])
+    async def health(_request: Any) -> Any:
+        """Per-source staleness and whether the door is locked (CLAUDE.md 2.5)."""
+        return JSONResponse(
+            {
+                "ok": True,
+                "authenticated": wants_auth,
+                "write_executor": d.config.write_executor,
+                "write_enabled": d.config.write_enabled,
+                "sources": [s.name for s in d.sources],
+                "unfinished_writes": len(d.store.unfinished_writes()),
+            }
+        )
+
+    app = mcp.http_app(transport="http")
+    _attach_scheduler(app, d)
+    return app
+
+
+def _attach_scheduler(app: Any, deps: Deps) -> None:
+    """Run the weekly jobs inside this process, alongside the MCP endpoint.
+
+    Not a separate machine: a Fly volume attaches to exactly one machine and the database
+    lives on it. See ff/api/scheduler.py.
+    """
+    tasks: list[Any] = []
+
+    async def _start() -> None:
+        tasks.extend(scheduler.start(deps))
+
+    async def _stop() -> None:
+        for task in tasks:
+            task.cancel()
+
+    app.router.on_startup.append(_start)
+    app.router.on_shutdown.append(_stop)
