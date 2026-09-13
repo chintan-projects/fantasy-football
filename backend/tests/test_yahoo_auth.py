@@ -239,14 +239,24 @@ class TestScope:
     the default is the scope that works today, and write is opted into once granted.
     """
 
-    def test_the_default_scope_is_read(self) -> None:
+    def test_no_scope_parameter_is_sent_by_default(self) -> None:
+        """The whole finding, in one assertion. Probed against Yahoo on 2026-09-13:
+        fspt-r and fspt-w are both refused with invalid_scope, and omitting the parameter
+        is what reaches the login page."""
         url = authorize_url("cid", "https://localhost:8080/callback")
-        assert "scope=fspt-r" in url
+        assert "scope=" not in url
         assert "response_type=code" in url
+        assert "client_id=cid" in url
 
-    def test_write_can_be_asked_for_explicitly(self) -> None:
+    def test_a_scope_can_still_be_forced(self) -> None:
+        """Kept so the documented behaviour can be re-tested if Yahoo restores it."""
         url = authorize_url("cid", "https://localhost:8080/callback", scope="fspt-w")
         assert "scope=fspt-w" in url
+
+    def test_an_empty_scope_is_treated_as_unset(self) -> None:
+        """FF_YAHOO_SCOPE= in an environment file means "send nothing", not "send ''"."""
+        url = authorize_url("cid", "https://localhost:8080/callback", scope="")
+        assert "scope=" not in url
 
     def test_an_unknown_scope_is_refused_before_the_round_trip(self) -> None:
         """A typo here costs a browser round trip and an opaque Yahoo error page."""
@@ -278,8 +288,8 @@ class TestCallbackParsing:
     def test_the_invalid_scope_message_names_the_actual_cause(self) -> None:
         """The one failure we can diagnose outright, so it should not read as a mystery."""
         result = parse_callback("error=invalid_scope&error_description=invalid+scope")
-        assert "write access" in result.message
         assert "FF_YAHOO_SCOPE" in result.message
+        assert "API Permissions" in result.message
 
     def test_an_unknown_error_is_repeated_verbatim(self) -> None:
         result = parse_callback("error=access_denied&error_description=user+said+no")

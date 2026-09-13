@@ -261,32 +261,39 @@ WRITE_SCOPE = "fspt-w"
 SCOPES = (READ_SCOPE, WRITE_SCOPE)
 
 
-def authorize_url(client_id: str, redirect_uri: str, scope: str = READ_SCOPE) -> str:
-    """The consent URL.
+def authorize_url(client_id: str, redirect_uri: str, scope: str | None = None) -> str:
+    """The consent URL. **Send no scope parameter.**
 
-    The default is read, because read is what a new app actually has. Yahoo grants write
-    only after reviewing an application, and asking for ``fspt-w`` before that is granted
-    does not degrade to read -- the whole handshake fails with ``error=invalid_scope`` and
-    you end up with no token at all. Read first, then opt into write once it is granted, by
-    setting FF_YAHOO_SCOPE. Enabling Read/Write on the app in YDN is also required; with
-    only one of the two, Yahoo issues a read-only token and says nothing. (BUG-004.)
+    This contradicts every Yahoo integration guide, including this project's own skill, so
+    here is the probe that settled it (2026-09-13, against a real client id, reading the
+    302 Location off ``request_auth`` without following it):
+
+    * ``scope=fspt-r``  -> 302 ``error=invalid_scope``
+    * ``scope=fspt-w``  -> 302 ``error=invalid_scope``
+    * no scope at all   -> 302 to the login page, handshake proceeds
+
+    Yahoo derives permissions from the app's own configuration in the developer portal --
+    the Fantasy Sports permission and its Read vs Read/Write setting. Passing an explicit
+    scope string is not how you ask for access; it is how you fail the handshake. So the
+    default is to omit it, and the knob survives only to re-test the documented behaviour
+    if Yahoo ever restores it. (BUG-004.)
     """
     from urllib.parse import urlencode
 
-    if scope not in SCOPES:
-        raise ConfigError(
-            f"Unknown Yahoo scope {scope!r}. Use {READ_SCOPE!r} for read, or {WRITE_SCOPE!r} "
-            f"once Yahoo has granted write access. There is no combined scope string."
-        )
-    params = urlencode(
-        {
-            "client_id": client_id,
-            "redirect_uri": redirect_uri,
-            "response_type": "code",
-            "scope": scope,
-        }
-    )
-    return f"{AUTH_URL}?{params}"
+    params: dict[str, str] = {
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
+        "response_type": "code",
+    }
+    if scope:
+        if scope not in SCOPES:
+            raise ConfigError(
+                f"Unknown Yahoo scope {scope!r}. Use {READ_SCOPE!r}, {WRITE_SCOPE!r}, or -- "
+                f"what actually works -- leave it unset so Yahoo uses the app's own "
+                f"permissions."
+            )
+        params["scope"] = scope
+    return f"{AUTH_URL}?{urlencode(params)}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -317,12 +324,14 @@ class CallbackResult:
         if self.error == "invalid_scope":
             return (
                 "Yahoo refused the requested scope (invalid_scope).\n\n"
-                "This means write access has not been granted to your app. Write is granted "
-                "only after Yahoo reviews an application, and asking for it early fails the "
-                "whole handshake instead of falling back to read.\n\n"
-                "Fix: set FF_YAHOO_SCOPE=fspt-r in your environment file and run `make auth` "
-                "again. Read access is all the recommendation half of the app needs. Switch "
-                "it to fspt-w once Yahoo approves write."
+                "Yahoo rejects every explicit fspt-* scope string and takes permissions "
+                "from your app's own settings in the developer portal instead. Probed "
+                "2026-09-13: fspt-r and fspt-w are both refused, and sending no scope at "
+                "all works.\n\n"
+                "Fix: leave FF_YAHOO_SCOPE unset -- that is the default now -- and run "
+                "`make auth` again. If it still fails, the app itself has no Fantasy Sports "
+                "permission: open it at developer.yahoo.com/apps, tick Fantasy Sports under "
+                "API Permissions, save, and retry."
             )
         detail = f": {self.description}" if self.description else ""
         return (

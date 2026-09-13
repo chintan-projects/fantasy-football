@@ -42,10 +42,10 @@ class Settings(BaseSettings):
     yahoo_league_key: str = ""
     yahoo_team_key: str = ""
     yahoo_token_path: str = ".tokens/yahoo.json"
-    # Read is what a new Yahoo app actually holds. Asking for write before Yahoo has
-    # granted it fails the whole handshake rather than degrading to read (BUG-004), so
-    # this stays fspt-r until the access application comes back approved.
-    yahoo_scope: Literal["fspt-r", "fspt-w"] = "fspt-r"
+    # Empty means "send no scope parameter", which is the only thing that works: Yahoo
+    # rejects fspt-r and fspt-w alike with invalid_scope and takes permissions from the
+    # app's own settings in the developer portal. Probed 2026-09-13. (BUG-004.)
+    yahoo_scope: Literal["", "fspt-r", "fspt-w"] = ""
 
     # Optional paid source
     fantasypros_api_key: str = ""

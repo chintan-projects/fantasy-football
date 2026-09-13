@@ -191,3 +191,31 @@ substitute and they lag ~1 day.
    updates.
 4. Record `last_success_at` per source and surface staleness in `/health` and in the UI.
 5. Personal use only. Do not redistribute ESPN or nflverse data.
+
+## Corrected 2026-09-13, by probing: Yahoo OAuth takes no scope parameter
+
+`.claude/skills/yahoo-fantasy-api` says to request the `fspt-w` scope, and every Yahoo
+integration guide online says to request `fspt-r` or `fspt-w`. Both are wrong as of
+2026-09-13. Requesting either one fails the handshake outright.
+
+The probe, against `https://api.login.yahoo.com/oauth2/request_auth` with a real client
+id, reading the 302 `Location` without following it:
+
+| scope sent | result |
+|---|---|
+| `scope=fspt-r` | 302 `error=invalid_scope&error_description=invalid+scope` |
+| `scope=fspt-w` | 302 `error=invalid_scope&error_description=invalid+scope` |
+| *no scope parameter* | 302 to `login.yahoo.com` — handshake proceeds |
+
+Yahoo derives permissions from the app's own configuration in the developer portal: the
+Fantasy Sports API permission, and whether it is set to Read or Read/Write. So:
+
+* **Never send a `scope` parameter.** `FF_YAHOO_SCOPE` defaults to empty and should stay
+  there.
+* **Read vs write is an app setting, not a request parameter.** Change it at
+  developer.yahoo.com/apps, not in the authorize URL.
+* If `invalid_scope` comes back with no scope sent, the app has no Fantasy Sports
+  permission at all. Tick it under API Permissions and save.
+
+This is the second documented-fact-is-wrong finding in this file, which is why CLAUDE.md
+§7 says to probe the data rather than the documentation.

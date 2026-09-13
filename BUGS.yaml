@@ -21,16 +21,24 @@ bugs:
     found: 2026-09-13
     status: fixed
     detail: >
-      authorize_url hardcoded fspt-w. Yahoo grants write only after reviewing an access
-      application, and until then it rejects the scope outright with error=invalid_scope --
-      it does not quietly downgrade to read. So an app waiting on review could not read
-      either, which is the 80% of the product that needs no approval. The scope is now
-      configurable via FF_YAHOO_SCOPE and defaults to fspt-r; an unrecognised value raises
-      before the browser round trip rather than after it.
+      authorize_url hardcoded fspt-w and Yahoo answered error=invalid_scope. The first fix
+      assumed this meant "write not granted yet" and switched the default to fspt-r. Yahoo
+      refused that too. Probing the request_auth endpoint directly for all three cases
+      settled it: fspt-r is refused, fspt-w is refused, and sending NO scope parameter
+      reaches the login page. Yahoo takes permissions from the app's own developer-portal
+      settings; an explicit scope string is not how you ask for access, it is how you fail
+      the handshake. The default is now to omit it. FF_YAHOO_SCOPE survives only so the
+      documented behaviour can be re-tested if Yahoo ever restores it. Every integration
+      guide saying otherwise -- including this project's own yahoo-fantasy-api skill -- is
+      stale on this point.
     severity: high
     fixed_in: >
       backend/src/ff/adapters/yahoo/auth.py, backend/src/ff/core/config.py,
-      scripts/yahoo_auth.py, regression tests in tests/test_yahoo_auth.py
+      scripts/yahoo_auth.py, .env.example, regression tests in tests/test_yahoo_auth.py
+    verified: >
+      The URL built from the shipped defaults was replayed against
+      api.login.yahoo.com/oauth2/request_auth on 2026-09-13 and returned a 302 to the
+      Yahoo login page rather than an error.
 
   - id: BUG-003
     title: A blank value in the environment file stops the whole app from starting

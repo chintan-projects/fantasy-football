@@ -102,11 +102,11 @@ def main() -> int:
         print("Walkthrough: docs/YAHOO_SETUP.md")
         return 2
 
-    # Read is the default because it is what a new app holds. Write needs both an approved
-    # Yahoo access application AND Read/Write enabled on the app in YDN -- with only one of
-    # the two, Yahoo issues a read-only token and says nothing.
+    # No scope parameter. Yahoo refuses fspt-r and fspt-w alike and reads permissions off
+    # the app's own developer-portal settings instead -- see authorize_url for the probe.
     url = authorize_url(cfg.yahoo_client_id, cfg.yahoo_redirect_uri, scope=cfg.yahoo_scope)
-    print(f"Requesting scope {cfg.yahoo_scope}.")
+    asked = cfg.yahoo_scope or "(none -- Yahoo uses the app's own permissions)"
+    print(f"Requesting scope: {asked}")
     print("Opening Yahoo consent page. Accept the self-signed certificate warning.\n")
     print(url, "\n")
     webbrowser.open(url)
