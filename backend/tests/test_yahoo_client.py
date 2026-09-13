@@ -215,7 +215,52 @@ class TestAuthFailures:
             tmp_path,
             [("/game/nfl", httpx.Response(401, text="Please provide valid credentials"))],
         )
-        with pytest.raises(AuthExpired, match="scope"):
+        with pytest.raises(AuthExpired, match="refreshing cannot fix it"):
+            client.game_id()
+        assert len(recorder.paths) == 1
+
+    def test_an_unrecognised_401_repeats_what_yahoo_said(self, tmp_path: Path) -> None:
+        """Guessing at the cause is how BUG-006 stayed invisible. Quote the source."""
+        client, _, _ = build(
+            tmp_path,
+            [("/game/nfl", httpx.Response(401, text="Please provide valid credentials"))],
+        )
+        with pytest.raises(AuthExpired, match="Please provide valid credentials"):
+            client.game_id()
+
+    def test_an_unauthorized_app_is_not_retried(self, tmp_path: Path) -> None:
+        """BUG-006. Yahoo's answer when the app lacks Fantasy Sports API access.
+
+        The token is valid and freshly minted; the *app* is not approved. Refreshing is
+        hopeless by construction, so retrying four times and then reporting a throttle --
+        which is what used to happen -- burned 25 seconds and named the wrong cause.
+        """
+        body = (
+            '{"error":{"description":"Please provide valid credentials. OAuth '
+            'oauth_problem="additional_authorization_required", realm="yahooapis.com""}}'
+        )
+        client, recorder, _ = build(tmp_path, [("/game/nfl", httpx.Response(401, text=body))])
+        with pytest.raises(AuthExpired, match="additional_authorization_required"):
+            client.game_id()
+        assert len(recorder.paths) == 1
+
+    def test_the_unauthorized_message_says_what_to_do(self, tmp_path: Path) -> None:
+        body = 'oauth_problem="additional_authorization_required"'
+        client, _, _ = build(tmp_path, [("/game/nfl", httpx.Response(401, text=body))])
+        with pytest.raises(AuthExpired) as caught:
+            client.game_id()
+        message = str(caught.value)
+        assert "API Permissions" in message
+        assert "sports.yahoo.com/developer/access" in message
+
+    def test_an_unknown_oauth_problem_is_not_retried_either(self, tmp_path: Path) -> None:
+        """Only token_expired is recoverable by refreshing. Everything else is a state
+        the caller has to fix, and retrying just delays them hearing about it."""
+        client, recorder, _ = build(
+            tmp_path,
+            [("/game/nfl", httpx.Response(401, text='oauth_problem="consumer_key_rejected"'))],
+        )
+        with pytest.raises(AuthExpired, match="consumer_key_rejected"):
             client.game_id()
         assert len(recorder.paths) == 1
 

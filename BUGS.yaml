@@ -1,5 +1,27 @@
 # Every TODO in code needs an entry here. Newest first.
 bugs:
+  - id: BUG-006
+    title: An unapprovable 401 was retried four times and then blamed on throttling
+    found: 2026-09-13
+    status: fixed
+    detail: >
+      _handle_auth_failure treated any body containing "oauth_problem" as a stale token:
+      refresh, then raise Throttled so the backoff wrapper runs the call again. Yahoo's
+      answer for an app that is not approved for the Fantasy Sports API is
+      oauth_problem="additional_authorization_required", which no refresh can ever fix. So
+      a first real read spent 25 seconds on four doomed attempts and then reported "yahoo
+      throttled" -- while the actual cause sat in the first response body. Only
+      token_expired is refreshable now. additional_authorization_required raises straight
+      away with both of its possible causes and what to do about each, and any other 401
+      quotes what Yahoo actually said instead of guessing at a scope mismatch.
+    severity: high
+    fixed_in: >
+      backend/src/ff/adapters/yahoo/client.py, regression tests in
+      tests/test_yahoo_client.py
+    verified: >
+      `make leagues` against the live API now fails in under a second with the real
+      reason, where it previously looped for 25 seconds and named the wrong one.
+
   - id: BUG-005
     title: The OAuth callback reported a guess, then hung forever
     found: 2026-09-13

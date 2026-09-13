@@ -89,12 +89,21 @@ open_questions:
 
   - id: yahoo-api-access
     question: Does the read path work against a real Yahoo league?
+    status: blocked, awaiting Yahoo review
     impact: >
-      M1 is tested against fixtures built from documented shapes, not recordings. The
-      parsers are written to fail loudly on a surprise rather than silently, so the first
-      live call should say precisely what is wrong if anything is. Until then M1 is
-      "complete and untested against reality".
-    next_step: Create a Yahoo app, run `make auth`, then re-record tests/fixtures/yahoo/.
+      Settled on 2026-09-13, as far as it can be. OAuth works end to end: `make auth`
+      returns a real token and it stores cleanly. Every Fantasy Sports endpoint then
+      answers 401 oauth_problem="additional_authorization_required" -- the token is valid
+      and the app is not approved. Yahoo acknowledged the access application the same day
+      and quoted 1-2 weeks. So M1's parsers remain untested against real payloads, and the
+      fixtures stay hand-built until a read succeeds.
+      Note the handshake itself needed a fix to get this far: Yahoo rejects every explicit
+      fspt-* scope string. See BUG-004 and docs/DATA_SOURCES.md.
+    next_step: >
+      Confirm Fantasy Sports is ticked under API Permissions at developer.yahoo.com/apps
+      -- an unticked permission produces the identical error and is fixable in 30 seconds.
+      If it is ticked, wait for the review, then re-run `make leagues` and re-record
+      tests/fixtures/yahoo/.
 
   - id: fantasypros-key
     question: Do the FantasyPros response shapes match what the adapter expects?

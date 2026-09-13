@@ -111,16 +111,41 @@ class YahooClient:
             ) from exc
 
     def _handle_auth_failure(self, status: int, body: str) -> None:
-        """An expired token is recoverable. A wrong scope is not, so do not retry it."""
+        """Refresh only what refreshing can fix.
+
+        Exactly one 401 is recoverable: ``token_expired``. Every other one describes a
+        state the caller has to go and change, and retrying it burns the backoff budget
+        before reporting the wrong cause. The version of this that matched any
+        ``oauth_problem`` at all retried ``additional_authorization_required`` four times
+        and then announced a throttle -- while the real answer, that the app is not
+        approved for the Fantasy Sports API, was sitting in the first response. (BUG-006.)
+        """
         lowered = body.lower()
-        if "token_expired" in lowered or "oauth_problem" in lowered:
+
+        if "token_expired" in lowered:
             log.info("yahoo_token_expired_on_call")
             self.auth.force_refresh()
             raise Throttled("yahoo")  # retryable: with_backoff runs the call again
+
+        if "additional_authorization_required" in lowered:
+            raise AuthExpired(
+                "Yahoo accepted the token but refused the call: "
+                'oauth_problem="additional_authorization_required".\n'
+                "The token is fine. The app is not approved for the Fantasy Sports API.\n"
+                "Two causes, in the order worth checking:\n"
+                "  1. The app has no Fantasy Sports permission. Open it at "
+                "developer.yahoo.com/apps, tick Fantasy Sports under API Permissions, "
+                "save, and run `make auth` again.\n"
+                "  2. The permission is set but the access application is still under "
+                "review at sports.yahoo.com/developer/access. Nothing in the code changes "
+                "this one -- it is a wait. See CLAUDE.md section 6."
+            )
+
+        detail = body.strip()[:200] or f"HTTP {status} with an empty body"
         raise AuthExpired(
-            f"Yahoo returned HTTP {status} and the body does not say the token expired. "
-            f"The most likely cause is a scope mismatch -- check that Read/Write is enabled "
-            f"on the app in YDN. See docs/YAHOO_SETUP.md."
+            f"Yahoo returned HTTP {status} and the body does not say the token expired, so "
+            f"refreshing cannot fix it. Yahoo said: {detail}\n"
+            f"See docs/YAHOO_SETUP.md."
         )
 
     def get(self, path: str, cache_key: str, ttl_s: int | None = None) -> Any:
