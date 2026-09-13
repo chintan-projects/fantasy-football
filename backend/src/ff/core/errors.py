@@ -29,6 +29,14 @@ class SchemaDrift(SourceUnavailable):
     """
 
 
+class AuthExpired(FFError):
+    """The Yahoo token could not be refreshed. A human has to re-authorize.
+
+    Distinct from Throttled and from WriteRefused: no amount of retrying fixes it, and it
+    is not a permissions problem -- the credential itself is gone.
+    """
+
+
 class Throttled(FFError):
     """Rate limited. Yahoo signals this with HTTP 999 and an HTML body."""
 

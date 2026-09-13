@@ -15,6 +15,8 @@ dependencies = [
   "python-dotenv>=1.0",
   "yahoo-fantasy-api>=2.12.3",
   "yahoo-oauth>=2.1.1",
+  "nflreadpy>=0.1.5",
+  "polars>=1.44.2",
 ]
 
 [project.optional-dependencies]
