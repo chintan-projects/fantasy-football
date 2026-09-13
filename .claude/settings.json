@@ -1,0 +1,117 @@
+{
+  "model": "claude-opus-5",
+  "permissions": {
+    "allow": [
+      "Bash(git *)", "Bash(ls *)", "Bash(jq *)", "Bash(gh *)", "Bash(make *)",
+      "Bash(uv *)", "Bash(uv run *)", "Bash(pytest *)", "Bash(python -m pytest *)",
+      "Bash(ruff *)", "Bash(black *)", "Bash(mypy *)",
+      "Bash(npm *)", "Bash(npx *)", "Bash(pnpm *)",
+      "Bash(cat PROGRESS.yaml)", "Bash(cat BUGS.yaml)", "Bash(./scripts/*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(sudo *)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/secrets/**)",
+      "Read(**/oauth2.json)",
+      "Read(**/.tokens/**)"
+    ]
+  },
+  "env": {
+    "PYTHONPATH": "backend/src",
+    "FF_WRITE_ENABLED": "false"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-start.sh",
+            "timeout": 15,
+            "statusMessage": "Loading project state..."
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pre-bash-validate.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/protect-files.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/post-edit-lint.sh",
+            "timeout": 30,
+            "statusMessage": "Formatting..."
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-layering.sh",
+            "timeout": 15,
+            "statusMessage": "Checking module boundaries..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop-smoke-test.sh",
+            "timeout": 120,
+            "statusMessage": "Running tests..."
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "Review the git diff for this session against CLAUDE.md. Run: git diff --cached; git diff. Check for: (1) code changed without a corresponding test, (2) TODO/FIXME added without a BUGS.yaml entry, (3) network or I/O imports inside src/ff/domain/ (forbidden), (4) print() instead of the structured logger, (5) a new abstraction, interface or config knob without a named second caller (CLAUDE.md 2.0), (6) any write path to Yahoo that does not check for a recorded approval, (7) a claim in docs or UI copy stated more confidently than the evidence supports (CLAUDE.md 3). If issues found: {\"ok\": false, \"reason\": \"<list>\"}. If clean: {\"ok\": true, \"reason\": \"Clean.\"}.",
+            "timeout": 120
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'PRESERVE: modified files, test results, current task in PROGRESS.yaml, open blockers in BUGS.yaml, Yahoo write-access status, architecture decisions made this session'"
+          }
+        ]
+      }
+    ]
+  }
+}

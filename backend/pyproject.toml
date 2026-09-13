@@ -1,0 +1,66 @@
+[project]
+name = "ff-copilot"
+version = "0.1.0"
+description = "Yahoo fantasy football lineup and FAAB copilot"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "httpx>=0.28",
+  "pydantic>=2.9",
+  "pydantic-settings>=2.6",
+  "numpy>=2.1",
+  "structlog>=24.4",
+  "tenacity>=9.0",
+  "python-dotenv>=1.0",
+  "yahoo-fantasy-api>=2.12.3",
+  "yahoo-oauth>=2.1.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3",
+  "pytest-timeout>=2.3",
+  "pytest-cov>=6.0",
+  "hypothesis>=6.115",
+  "mypy>=1.13",
+  "ruff>=0.8",
+  "respx>=0.22",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ff"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "A", "C4", "SIM", "TID", "RUF"]
+# N818: error names read better without the suffix (SourceUnavailable, not
+# SourceUnavailableError). One error family, consistently named -- CLAUDE.md 2.6.
+ignore = ["E501", "N818"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"requests".msg = "Use httpx via an adapter. Never in domain/."
+
+[tool.mypy]
+# Matches the interpreter in .venv. numpy's shipped stubs use 3.12+ `type` statements, so
+# checking against 3.11 fails inside numpy before it ever reaches our code.
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+files = ["src/ff"]
+
+[[tool.mypy.overrides]]
+module = ["yahoo_fantasy_api.*", "yahoo_oauth.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q --strict-markers"

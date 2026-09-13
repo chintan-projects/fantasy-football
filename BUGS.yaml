@@ -1,0 +1,34 @@
+# Every TODO in code needs an entry here. Newest first.
+bugs: []
+
+known_limitations:
+  - id: LIM-1
+    title: Winner's curse shading constants are a calibrated guess
+    detail: >
+      domain/faab.winners_curse_shading grows with the bidder count, which is what theory
+      guarantees. The specific coefficients are not derived and not backtested. Treat bid
+      sizes as directional until M6 can score them against real outcomes.
+    severity: medium
+
+  - id: LIM-2
+    title: Gamma quantiles use a Wilson-Hilferty approximation
+    detail: >
+      domain/distributions avoids a scipy dependency by approximating the Gamma inverse CDF.
+      Accurate to within a few percent in the tails, which is well inside the precision this
+      problem supports -- projections explain 3-23% of variance. Revisit only if a
+      calibration study shows tail bias.
+    severity: low
+
+  - id: LIM-3
+    title: Correlation priors are archetype-level, not per-player
+    detail: >
+      Deliberate. A specific QB-WR pair shares a handful of games, so a fitted per-pair
+      correlation is noise. Do not "improve" this without a study showing otherwise.
+    severity: low
+
+  - id: LIM-4
+    title: ESPN endpoints are undocumented and unversioned
+    detail: >
+      No contract, no deprecation notice. Schema validation on every fetch is required, and
+      ESPN must never be a required source.
+    severity: medium

@@ -1,0 +1,74 @@
+# What is done, what is next. Claude reads this at session start.
+project: fantasy-football-copilot
+updated: 2026-09-13
+
+milestones:
+  - id: M0
+    name: Project setup
+    status: done
+    notes: CLAUDE.md, hooks, skills, docs, backend skeleton, 58 passing tests.
+
+  - id: M1
+    name: Yahoo read path
+    status: not_started
+    blocked_by: [yahoo-api-access]
+    tasks:
+      - Apply for API access at sports.yahoo.com/developer/access (READ/WRITE in the notes)
+      - OAuth flow with a local HTTPS listener, token refresh at 55 minutes
+      - League settings, roster by week, matchup, free agents
+      - Resolve the current NFL game_id at runtime -- never hardcode it
+
+  - id: M2
+    name: Projections and blending
+    status: not_started
+    tasks:
+      - ESPN kona_player_info adapter with schema validation on every fetch
+      - FantasyPros adapter (ECR mean plus std-dev -- the uncertainty input)
+      - Aleatoric variance from game logs, shrunk toward the position prior
+      - nflverse injuries via nflreadpy (NOT nfl_data_py, which is archived)
+
+  - id: M3
+    name: Lineup recommendation end to end
+    status: not_started
+    tasks:
+      - Wire adapters into services.recommend
+      - /lineup page with contested calls and honest "too close to call" rows
+      - Snapshot every input set so backtests are a replay, not a re-fetch
+
+  - id: M4
+    name: Waivers and FAAB
+    status: not_started
+    tasks:
+      - Free agent board ranked by rest-of-season VORP
+      - Estimate interested bidders from league rosters (the highest-value input)
+      - Bid recommendation with the shading breakdown shown
+      - Sleeper trending adds, normalized by availability
+
+  - id: M5
+    name: Write path
+    status: blocked
+    blocked_by: [yahoo-write-access]
+    tasks:
+      - scripts/probe_write.py to settle whether writes work at all
+      - Approval flow end to end, single-use, 6-hour expiry
+      - Write journal with crash recovery
+      - AssistedExecutor fallback if writes are refused
+
+  - id: M6
+    name: Calibration
+    status: not_started
+    notes: >
+      The part that makes the whole thing trustworthy. Without it there is no evidence
+      the app helps. Build the logging in week one -- it cannot be reconstructed later.
+    tasks:
+      - Store projections and actuals; compute MAE per source per week
+      - Recommendation hit rate versus the lineup that was already set
+      - Simulated season record following every recommendation
+
+in_progress: []
+
+open_questions:
+  - id: yahoo-write-access
+    question: Will Yahoo grant write access to a single-league personal app?
+    impact: Decides whether M5 ships as an API integration or as the assisted fallback.
+    next_step: Submit the access application. Nothing else unblocks it.
