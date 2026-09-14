@@ -92,19 +92,28 @@ call too and must match exactly.
 
 ## Step 4 — Find your league
 
-```bash
-make leagues
-```
-
-Prints every league your account is in with its key. Put yours in `.env`:
+Two numbers, and you can read both off your own team page without the API:
 
 ```
-FF_YAHOO_LEAGUE_KEY=...
-FF_YAHOO_TEAM_KEY=...
+https://football.fantasysports.yahoo.com/f1/123456/3
+                                            ^^^^^^ ^
+                                            league team
 ```
 
-**Never hardcode the game id.** `461` is the 2025 season. The app resolves the current one at
-runtime via `/game/nfl`.
+```
+FF_YAHOO_LEAGUE_KEY=123456
+FF_YAHOO_TEAM_KEY=3
+```
+
+**Never hardcode the game id.** `461` is the 2025 season, `470` is 2026, and it rolls over
+every year. The app resolves the current one at runtime via `/game/nfl` and composes both
+keys from it. Full keys (`470.l.123456` and `470.l.123456.t.3`) are still accepted, but the
+bare numbers are the better value because they cannot go stale.
+
+Once the API is reachable, `make leagues` prints every league on the account with its key —
+useful for confirming you read the URL right, not required to configure anything. It needs
+read access, so before approval it answers `additional_authorization_required`; the browser
+URL above does not.
 
 ## Step 5 — Probe write access
 

@@ -629,11 +629,22 @@ def http_app(deps: Deps | None = None, *, authenticate: bool | None = None) -> A
 
     @mcp.custom_route("/health", methods=["GET"])
     async def health(_request: Any) -> Any:
-        """Per-source staleness and whether the door is locked (CLAUDE.md 2.5)."""
+        """Per-source staleness and whether the door is locked (CLAUDE.md 2.5).
+
+        ``ok`` stays a liveness signal and nothing else, because fly.toml points its
+        machine health check at this path: reporting false for a configuration problem
+        would have Fly restart a process that is running perfectly well, repeatedly, and
+        the misconfiguration would still be there. Missing configuration gets its own
+        field instead, so one curl shows it -- previously this returned ok:true while
+        both Yahoo keys were empty and seven of the ten tools could not work.
+        """
+        missing = d.config.missing_required()
         return JSONResponse(
             {
                 "ok": True,
                 "authenticated": wants_auth,
+                "configured": not missing,
+                "config_missing": missing,
                 "write_executor": d.config.write_executor,
                 "write_enabled": d.config.write_enabled,
                 "sources": [s.name for s in d.sources],

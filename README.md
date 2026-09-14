@@ -28,7 +28,7 @@ make setup          # install dependencies
 cp .env.example .env
 # fill in Yahoo credentials — see docs/YAHOO_SETUP.md
 make auth           # authorize with Yahoo
-make leagues        # find your league and team keys, put them in .env
+# put your league and team numbers in .env -- they are in your team page URL
 make probe          # have writes become available yet? (no — see below)
 make test
 make mcp-demo       # run all ten tools against fixtures, no network, no Yahoo needed

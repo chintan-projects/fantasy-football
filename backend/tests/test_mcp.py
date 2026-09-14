@@ -342,6 +342,40 @@ def test_the_asgi_app_starts_and_serves_health(tmp_path: Path) -> None:
     assert body["ok"] is True
     assert body["authenticated"] is False
     assert body["write_executor"] == "dryrun"
+    assert "config_missing" in body
+
+
+def test_health_names_the_settings_that_are_empty(tmp_path: Path) -> None:
+    """On Fly both Yahoo keys were present as secrets and both held the empty string, so
+    ``fly secrets list`` showed them deployed and health said ok -- while seven of the ten
+    tools answered "FF_YAHOO_TEAM_KEY is not set". Health has to say it out loud."""
+    from dataclasses import replace
+
+    import httpx
+
+    deps = build(tmp_path)
+    blank = Settings(
+        yahoo_league_key="",
+        yahoo_team_key="",
+        database_path=deps.config.database_path,
+    )
+    app = http_app(replace(deps, config=blank), authenticate=False)
+
+    async def go() -> httpx.Response:
+        transport = httpx.ASGITransport(app=app)
+        async with (
+            app.router.lifespan_context(app),
+            httpx.AsyncClient(transport=transport, base_url="http://t") as client,
+        ):
+            return await client.get("/health")
+
+    body = asyncio.run(go()).json()
+    assert body["configured"] is False
+    assert "FF_YAHOO_LEAGUE_KEY" in body["config_missing"]
+    assert "FF_YAHOO_TEAM_KEY" in body["config_missing"]
+    # Still alive. fly.toml health-checks this path, and restarting a correctly running
+    # process does not fill in a missing secret.
+    assert body["ok"] is True
 
 
 def test_the_mcp_endpoint_is_mounted_where_claude_expects_it(tmp_path: Path) -> None:

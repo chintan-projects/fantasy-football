@@ -63,6 +63,10 @@ class FixtureLeague:
         self.calls.append("league_key")
         return "470.l.1000"
 
+    def team_key(self) -> str:
+        self.calls.append("team_key")
+        return self.my_team_key
+
     def league_settings(self) -> LeagueSettings:
         self.calls.append("league_settings")
         return parse.parse_league_settings(load("league_settings.json"))

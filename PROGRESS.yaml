@@ -1,13 +1,13 @@
 # What is done, what is next. Claude reads this at session start. Keep it under 50 lines.
 # Completed milestones and closed questions live in PROGRESS-archive.yaml.
 project: fantasy-football-copilot
-updated: 2026-09-13
+updated: 2026-09-14
 
 milestones:
   - id: M0-M4
     name: Setup, Yahoo read path, projections, lineup, waivers, MCP front door
     status: done
-    notes: See PROGRESS-archive.yaml. 347 tests passing; make check and make test green.
+    notes: See PROGRESS-archive.yaml. 394 tests passing; make check and make test green.
 
   - id: M5
     name: Write path
@@ -37,9 +37,24 @@ milestones:
       graded -- see docs/DECISIONS.md.
       Not built: a backtest that replays stored snapshots.
 
+  - id: M7
+    name: Configuration that fails loudly
+    status: done
+    notes: >
+      Found by connecting Claude to the deployed server and reading what it reported, the
+      same way BUG-008 was found. Three defects, all of them invisible from the inside:
+      BUG-016, health said ok with both Yahoo keys empty; BUG-015, the team key forced a
+      hardcoded game id that cannot be obtained without the API access we are waiting on,
+      so the app could not be configured at all; BUG-014, the assisted deep link was dead
+      under the recommended configuration, and that link is the shipping product.
+
 in_progress: []
 
 next:
+  - Set FF_YAHOO_LEAGUE_KEY and FF_YAHOO_TEAM_KEY on Fly to the real numbers. Both
+    secrets exist and both hold the empty string, which is why the deployed tools answer
+    "is not set". The numbers are in the team page URL; no API access needed. BUG-016.
+  - Set FF_WRITE_EXECUTOR=assisted on the deployed app. Carried over from M5.
   - Re-record tests/fixtures/yahoo/ against the live league once Yahoo approves access.
     Every Yahoo fixture is hand-built from documented shapes today.
   - Fix BUG-001, two mypy errors in adapters/yahoo/executors.py. Now live code rather

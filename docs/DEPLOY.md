@@ -50,8 +50,23 @@ megabytes — but it is the smallest Fly sells.
 Never in `fly.toml`; that file is committed.
 
 ```bash
-fly secrets set FF_YAHOO_CLIENT_ID=... FF_YAHOO_CLIENT_SECRET=... FF_YAHOO_LEAGUE_KEY=... FF_YAHOO_TEAM_KEY=...
+fly secrets set FF_YAHOO_CLIENT_ID=xxx FF_YAHOO_CLIENT_SECRET=xxx FF_YAHOO_LEAGUE_KEY=123456 FF_YAHOO_TEAM_KEY=3
 ```
+
+The league and team numbers come off your own team page URL — see `docs/YAHOO_SETUP.md`
+step 4. Substitute real values; pasting the line with `...` still in it sets each secret to
+the literal string `...`, and pasting it with the values deleted sets them to the empty
+string, which is worse: `fly secrets list` shows them `Deployed` either way.
+
+Check what actually landed:
+
+```bash
+curl -s https://ff-copilot.fly.dev/health
+```
+
+`config_missing` names any required setting that is empty. It is a list because the first
+version of this reported `ok: true` with both Yahoo keys blank, and the only symptom was
+seven of the ten tools answering "FF_YAHOO_TEAM_KEY is not set" from inside Claude.
 
 ```bash
 fly secrets set FF_GITHUB_CLIENT_ID=... FF_GITHUB_CLIENT_SECRET=... FF_ALLOWED_GITHUB_LOGIN=your-github-login FF_MCP_BASE_URL=https://ff-copilot.fly.dev

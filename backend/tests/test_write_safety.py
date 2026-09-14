@@ -10,6 +10,7 @@ import pytest
 from ff.adapters.base import Approval
 from ff.adapters.store import Store
 from ff.adapters.yahoo.executors import (
+    AssistedExecutor,
     DryRunExecutor,
     check_approval,
     check_budget,
@@ -118,3 +119,17 @@ def test_edit_claim_xml_shape() -> None:
 def test_payload_xml_escapes_hostile_input() -> None:
     xml = set_lineup_xml(1, [('461.p.1"><evil>', "QB")])
     assert "<evil>" not in xml
+
+
+class TestAssistedDeepLink:
+    """The assisted executor is the shipping path (CLAUDE.md section 6), and the deep link
+    is the whole of what it delivers. A dead link is a dead product."""
+
+    def test_a_bare_league_id_still_produces_a_usable_link(self) -> None:
+        """The recommended configuration is the bare id. This used to emit /f1/ and
+        nothing else, so the recommended setup produced the broken link."""
+        assert AssistedExecutor("1000")._url("/team").endswith("/f1/1000/team")
+
+    def test_a_full_league_key_drops_the_game_id(self) -> None:
+        """The game id is an API concept. The web URL wants the league id alone."""
+        assert AssistedExecutor("470.l.1000")._url("/team").endswith("/f1/1000/team")

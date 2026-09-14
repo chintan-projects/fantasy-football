@@ -81,7 +81,14 @@ class AssistedExecutor:
         self.league_key = league_key or settings().yahoo_league_key
 
     def _url(self, path: str = "") -> str:
-        league_id = self.league_key.split(".l.")[-1] if ".l." in self.league_key else ""
+        """The deep link is this executor's entire product, so it has to survive both
+        spellings of the league key.
+
+        It used to drop a bare league id on the floor and emit ``/f1/`` -- a dead link --
+        and the bare id is the spelling docs/YAHOO_SETUP.md recommends. The web URL wants
+        the league id alone either way; the game id prefix is an API concept.
+        """
+        league_id = self.league_key.split(".l.")[-1]
         return f"https://football.fantasysports.yahoo.com/f1/{league_id}{path}"
 
     def set_lineup(self, plan: LineupPlan, approval: Approval) -> WriteResult:

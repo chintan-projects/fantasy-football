@@ -355,6 +355,31 @@ class TestKeys:
         with pytest.raises(SourceUnavailable, match="FF_YAHOO_TEAM_KEY"):
             client.roster(week=2)
 
+    def test_a_bare_team_number_composes_into_a_full_key(self, tmp_path: Path) -> None:
+        """The game id is the one part of a team key you cannot read off your own team
+        page, and the documented way to obtain it needs the API access this is waiting on.
+        So a bare team number has to be enough to configure."""
+        client, _, _ = build(
+            tmp_path,
+            [("/game/nfl", ok(load("game_nfl.json")))],
+            league_id="1000",
+            team_key="3",
+        )
+        assert client.team_key() == "470.l.1000.t.3"
+
+    def test_a_full_team_key_is_used_as_given(self, tmp_path: Path) -> None:
+        client, recorder, _ = build(tmp_path, [], team_key="461.l.1000.t.3")
+        assert client.team_key() == "461.l.1000.t.3"
+        assert recorder.paths == []
+
+    def test_an_unset_team_key_stays_empty_rather_than_composing_a_plausible_one(
+        self, tmp_path: Path
+    ) -> None:
+        """Composing "470.l.1000.t." from nothing would produce a key that is shaped like
+        a real one, addresses nobody, and slips past every "is not set" check downstream."""
+        client, _, _ = build(tmp_path, [], team_key="")
+        assert client.team_key() == ""
+
 
 class TestReads:
     def test_roster_is_addressed_by_week(self, tmp_path: Path) -> None:

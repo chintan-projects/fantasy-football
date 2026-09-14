@@ -68,6 +68,25 @@ class Settings(BaseSettings):
     #: The NFL season. Not derived from the clock -- a date in early January belongs to the
     #: previous season and getting that wrong silently reads the wrong year's projections.
     season: int = 2026
+
+    def missing_required(self) -> list[str]:
+        """The settings with no usable value, named as the environment variables to set.
+
+        Every one of these defaults to the empty string, because a config object that
+        raises on import cannot be imported by the test suite or by ``make mcp-demo``.
+        The cost of that choice is that an unset key looks exactly like a set one until a
+        tool call fails, which is what happened on Fly: both Yahoo keys were present as
+        secrets and both held "", so ``fly secrets list`` showed them deployed while every
+        roster read answered "FF_YAHOO_TEAM_KEY is not set". Health reports this now.
+        """
+        required = {
+            "FF_YAHOO_CLIENT_ID": self.yahoo_client_id,
+            "FF_YAHOO_CLIENT_SECRET": self.yahoo_client_secret,
+            "FF_YAHOO_LEAGUE_KEY": self.yahoo_league_key,
+            "FF_YAHOO_TEAM_KEY": self.yahoo_team_key,
+        }
+        return sorted(name for name, value in required.items() if not value.strip())
+
     log_level: str = "INFO"
 
     # --- MCP server ---

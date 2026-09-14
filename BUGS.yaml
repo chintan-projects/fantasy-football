@@ -1,5 +1,63 @@
 # Every TODO in code needs an entry here. Newest first.
 bugs:
+  - id: BUG-016
+    title: Health reported ok while two required settings were empty
+    found: 2026-09-14
+    status: fixed
+    detail: >
+      Both Yahoo keys were set on Fly as secrets holding the empty string. `fly secrets
+      list` showed them Deployed, /health returned ok true, and the only symptom was seven
+      of the ten tools answering "FF_YAHOO_TEAM_KEY is not set" from inside Claude -- with
+      no way from the outside to tell a blank secret from a missing one. Two secrets
+      sharing a digest was the only visible tell and you had to already suspect it.
+      Settings.missing_required now names every required setting that is empty, and
+      /health reports it as configured plus config_missing. ok stays true, because
+      fly.toml health-checks that path and restarting a correctly running process does not
+      fill in a missing secret -- the same reasoning as BUG-009, from the other side.
+    severity: medium
+    fixed_in: >
+      backend/src/ff/core/config.py, backend/src/ff/api/mcp.py, and
+      tests/test_mcp.py (test_health_names_the_settings_that_are_empty)
+
+  - id: BUG-015
+    title: The team key was the one setting that forced a hardcoded game id
+    found: 2026-09-14
+    status: fixed
+    detail: >
+      league_key composed a bare league id with the game id resolved at runtime, exactly as
+      docs/YAHOO_SETUP.md requires. team_key did no such thing: it was passed through
+      verbatim, so configuring it meant writing 470.l.1000.t.3 and hardcoding the season
+      that the same document says never to hardcode.
+      Worse, the game id is the one component you cannot read off your own team page, so
+      the only documented way to obtain it was `make leagues` -- which needs the API access
+      the whole project is waiting on. The app could not be configured at all before
+      approval, for no reason other than this.
+      team_key is now a method that composes a bare team number the way league_key composes
+      a bare league id. Deps.my_team_key resolves through it, so the opponent model still
+      compares full keys against full keys.
+    severity: medium
+    fixed_in: >
+      backend/src/ff/adapters/yahoo/client.py, backend/src/ff/adapters/base.py,
+      backend/src/ff/api/deps.py, and tests/test_yahoo_client.py (TestKeys)
+
+  - id: BUG-014
+    title: The assisted deep link was dead under the recommended configuration
+    found: 2026-09-14
+    status: fixed
+    detail: >
+      AssistedExecutor._url read the league id as the part after ".l." and substituted the
+      empty string when there was no ".l." -- yielding https://football.fantasysports.
+      yahoo.com/f1/ and no league. A bare league id is the configuration YAHOO_SETUP.md
+      recommends, so the recommended setup produced the broken link.
+      This is not cosmetic. Yahoo grants no write access to anyone (CLAUDE.md section 6),
+      so AssistedExecutor is the shipping path and that link is the whole of what it
+      delivers: the app does the analysis and hands back a move plus somewhere to make it.
+      Never caught because no test covered the executor's URL at all.
+    severity: medium
+    fixed_in: >
+      backend/src/ff/adapters/yahoo/executors.py and
+      tests/test_write_safety.py (TestAssistedDeepLink)
+
   - id: BUG-013
     title: Two shapes were persisted for one recommendation, and calibration could read one
     found: 2026-09-13

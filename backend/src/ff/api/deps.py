@@ -36,7 +36,13 @@ class Deps:
 
     @property
     def my_team_key(self) -> str:
-        return self.config.yahoo_team_key
+        """The full team key, not whatever shorthand was configured.
+
+        It is compared against the team keys Yahoo puts on transactions, to keep my own
+        bids out of the opponent model. A bare ``3`` would match nothing and the model
+        would quietly learn from my own bidding.
+        """
+        return self.yahoo.team_key()
 
 
 def build_deps(config: Settings | None = None) -> Deps:

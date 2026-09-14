@@ -76,7 +76,7 @@ class YahooClient:
         self._last_call_at = 0.0
         self._game_id: str | None = None
         self._configured_league = league_id
-        self.team_key = team_key
+        self._configured_team = team_key
 
     # ---- transport ---------------------------------------------------------------
 
@@ -188,6 +188,25 @@ class YahooClient:
             return configured
         return f"{self.game_id()}.l.{configured}"
 
+    def team_key(self) -> str:
+        """Accepts a full key (470.l.1000.t.3) or a bare team number (3).
+
+        Same reason as ``league_key``: a bare number carries no season. Until this existed
+        the team key was the one setting that forced a hardcoded game id, which
+        docs/YAHOO_SETUP.md tells you never to do -- and the game id is the one part of the
+        key you cannot read off your own team page, so the documented way to obtain it was
+        ``make leagues``, which needs the API access this is all waiting on.
+
+        Composing a bare number calls ``league_key``, so it can resolve the game id on
+        first use. That is one cached request, the same one ``league_key`` already makes.
+        """
+        configured = self._configured_team
+        if not configured:
+            return ""
+        if ".t." in configured:
+            return configured
+        return f"{self.league_key()}.t.{configured}"
+
     # ---- reads -------------------------------------------------------------------
 
     def league_settings(self) -> LeagueSettings:
@@ -202,7 +221,7 @@ class YahooClient:
 
     def roster(self, week: int, team_key: str | None = None) -> Roster:
         """My roster for a week. NFL is addressed by week, never by date."""
-        team = team_key or self.team_key
+        team = team_key or self.team_key()
         if not team:
             raise SourceUnavailable("yahoo", "FF_YAHOO_TEAM_KEY is not set", required=True)
         payload = self.get(
@@ -221,7 +240,7 @@ class YahooClient:
         actual starters, and guessing them from a projection ranking would be a different
         (and worse) product.
         """
-        team = team_key or self.team_key
+        team = team_key or self.team_key()
         if not team:
             raise SourceUnavailable("yahoo", "FF_YAHOO_TEAM_KEY is not set", required=True)
         payload = self.get(
@@ -269,7 +288,7 @@ class YahooClient:
         submission (CLAUDE.md 5.2). The owner bids from the Yahoo app sometimes, so any
         value older than a few minutes may already be wrong.
         """
-        team = team_key or self.team_key
+        team = team_key or self.team_key()
         if not team:
             raise SourceUnavailable("yahoo", "FF_YAHOO_TEAM_KEY is not set", required=True)
         payload = self.get(
