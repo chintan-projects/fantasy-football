@@ -64,7 +64,7 @@ next:
 open_questions:
   - id: yahoo-api-access
     question: Will Yahoo approve the Fantasy Sports API read application?
-    status: blocked, acknowledged 2026-09-13, quoted 1-2 weeks
+    status: blocked, submitted 2026-09-14, no response expected date
     impact: >
       OAuth works end to end and the token stores cleanly; every Fantasy endpoint then
       answers 401 oauth_problem="additional_authorization_required". Re-confirmed
@@ -73,7 +73,17 @@ open_questions:
       nothing to score until this clears, however finished the calibration code is. See
       BUG-004 for the scope fix that was needed to get this far.
     next_step: >
-      Wait. Application submitted 2026-09-14 via sports.yahoo.com/developer/access.
+      Wait, and do not plan around a date. Application submitted 2026-09-14 via
+      sports.yahoo.com/developer/access. An earlier version of this file said "quoted 1-2
+      weeks"; that was written 2026-09-13, before the form was even submitted, and had no
+      source. Corrected 2026-09-14. What the access page actually says: each application
+      is reviewed by the Yahoo Fantasy Sports team, no timeframe is published, and
+      "incomplete or insufficiently detailed submissions cannot be evaluated and will be
+      closed without further correspondence" -- so silence is not evidence of a pending
+      review. `[empirical]` -- read 2026-09-14. No public report of anyone completing the
+      new application process and receiving access could be found; the open questions
+      asking for a turnaround (uberfastman/yfpy#84, derekrbreese/fantasy-football-mcp-
+      public#18) are unanswered.
       The "check the app permission" theory is dead: inspected the real app on 2026-09-14
       and its API Permissions list offers OpenID Connect only, with no Fantasy Sports
       entry to tick. So there is no self-service fix and no second cause -- approval is the
