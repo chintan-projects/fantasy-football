@@ -56,11 +56,16 @@ cp .env.example .env
 
 Fill in:
 ```
-YAHOO_CLIENT_ID=...
-YAHOO_CLIENT_SECRET=...
-YAHOO_REDIRECT_URI=https://localhost:8080/callback
-FF_WRITE_ENABLED=false          # leave false until the probe passes
+FF_YAHOO_CLIENT_ID=...
+FF_YAHOO_CLIENT_SECRET=...
+FF_YAHOO_REDIRECT_URI=https://localhost:8080/callback
+FF_WRITE_ENABLED=false          # leave false; writes are not on offer, see CLAUDE.md 6
 ```
+
+**Every variable takes the `FF_` prefix.** `Settings` sets `env_prefix="FF_"`, so a bare
+`YAHOO_CLIENT_ID` is read by nothing, leaves the client id empty, and fails later at the
+authorize step rather than at startup. This page said the unprefixed names until
+2026-09-14.
 
 `.env` is gitignored and blocked from tool reads. Keep it that way.
 
@@ -87,8 +92,8 @@ make leagues
 Prints every league your account is in with its key. Put yours in `.env`:
 
 ```
-YAHOO_LEAGUE_KEY=...
-YAHOO_TEAM_KEY=...
+FF_YAHOO_LEAGUE_KEY=...
+FF_YAHOO_TEAM_KEY=...
 ```
 
 **Never hardcode the game id.** `461` is the 2025 season. The app resolves the current one at
