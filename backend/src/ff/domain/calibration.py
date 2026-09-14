@@ -13,6 +13,11 @@ comparison with an error bar. Weekly MAE is about 5 points against means in the 
 so two sources a quarter-point apart are indistinguishable and saying otherwise is the
 overclaiming this project exists to avoid.
 
+**Decision quality** -- ``score_decisions`` -- asks whether the individual calls were
+right: when it said start Bowers over McBride, who scored more? This is the question an
+owner actually asks, and the one that was unanswerable until contested slots were persisted
+with player ids. Slots the model declined to call are counted separately and never graded.
+
 **Lineup quality** -- ``score_lineup`` -- asks whether the advice was worth taking. Its
 unit is one week, so a season yields seventeen numbers and no amount of arithmetic will
 make that a significance test. It is reported as a record, not as a p-value. The benchmark
@@ -125,6 +130,79 @@ class LineupScore:
     @property
     def left_on_bench(self) -> float:
         return self.best_possible - self.recommended
+
+
+@dataclass(frozen=True, slots=True)
+class DecisionRecord:
+    """The record on individual start/sit calls -- the question the owner actually asks.
+
+    ``declined`` counts the slots the model refused to call. Those are deliberately not
+    graded and not counted against anything. CLAUDE.md section 3 makes "too close to call"
+    a real output, and a real output cannot also be scored as a prediction: grading
+    coin-flips would fill the record with noise in whichever direction the coins landed,
+    and would quietly punish the model for being honest.
+    """
+
+    right: int
+    wrong: int
+    tied: int
+    declined: int
+    points_gained: float
+    """Actual points of the starters chosen minus the alternatives, over graded calls.
+
+    This is the headline, not the record. A 6-4 record worth +2 points is a rounding
+    error; a 4-6 record worth +30 is a good season with unlucky small calls. Win-loss
+    hides both.
+    """
+
+    @property
+    def graded(self) -> int:
+        return self.right + self.wrong + self.tied
+
+    @property
+    def verdict(self) -> str:
+        if self.graded == 0:
+            return "No start/sit calls have been graded yet" + (
+                f"; {self.declined} were too close to call." if self.declined else "."
+            )
+        return (
+            f"{self.right}-{self.wrong}"
+            + (f"-{self.tied}" if self.tied else "")
+            + f" on calls it was willing to make, worth {self.points_gained:+.1f} points. "
+            + f"{self.declined} more were too close to call and are not graded."
+        )
+
+
+def score_decisions(
+    decisions: list[tuple[PlayerId, PlayerId | None, bool]],
+    actual: dict[PlayerId, float],
+) -> DecisionRecord:
+    """Grade contested-slot calls. Each entry is (started, benched, was_confident).
+
+    A call is skipped, not counted wrong, when there was no alternative or when either
+    player has no recorded score. A benched player with no row did not play, which makes
+    the comparison meaningless rather than favourable -- counting it as a win would reward
+    the model for starting anyone over an inactive player, which is not a judgment it made.
+    """
+    right = wrong = tied = declined = 0
+    gained = 0.0
+    for started, benched, confident in decisions:
+        if not confident:
+            declined += 1
+            continue
+        if benched is None or started not in actual or benched not in actual:
+            continue
+        margin = actual[started] - actual[benched]
+        gained += margin
+        if margin > 0:
+            right += 1
+        elif margin < 0:
+            wrong += 1
+        else:
+            tied += 1
+    return DecisionRecord(
+        right=right, wrong=wrong, tied=tied, declined=declined, points_gained=gained
+    )
 
 
 def score_sources(

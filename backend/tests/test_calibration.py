@@ -15,6 +15,7 @@ from ff.domain.calibration import (
     MINIMUM_PAIRS,
     best_lineup,
     compare,
+    score_decisions,
     score_lineup,
     score_sources,
 )
@@ -312,3 +313,65 @@ def test_the_season_report_grades_lineups_against_the_obvious_alternative(
     assert len(season.lineups) == 1
     assert season.lineups[0].edge == 19.0
     assert season.weeks_ahead_of_baseline == 1
+
+
+# ---- individual start/sit calls -----------------------------------------------------
+
+A, B, C, D = PlayerId("a"), PlayerId("b"), PlayerId("c"), PlayerId("d")
+
+
+def test_a_call_it_refused_to_make_is_not_a_call_it_got_wrong() -> None:
+    """The honesty property this whole record depends on.
+
+    "Too close to call" is a real output (CLAUDE.md section 3). Grading it as a prediction
+    would fill the record with coin flips -- and because the coins land both ways, it would
+    make an honest model look mediocre and a reckless one look identical. The declined
+    calls are counted and reported, never scored.
+    """
+    record = score_decisions(
+        [(A, B, False), (C, D, False)],
+        {A: 2.0, B: 30.0, C: 30.0, D: 2.0},
+    )
+    assert record.graded == 0
+    assert record.declined == 2
+    assert record.points_gained == 0.0
+    assert record.right == 0 and record.wrong == 0
+    assert "too close to call" in record.verdict
+
+
+def test_the_record_reports_the_size_of_the_calls_not_just_the_count() -> None:
+    """A 1-1 record hides the difference between +25 points and -25."""
+    record = score_decisions(
+        [(A, B, True), (C, D, True)],
+        {A: 30.0, B: 5.0, C: 8.0, D: 9.0},
+    )
+    assert (record.right, record.wrong) == (1, 1)
+    assert record.points_gained == 24.0  # +25 on the first, -1 on the second
+    assert "+24.0 points" in record.verdict
+
+
+def test_a_benched_player_who_never_played_is_skipped_not_scored_as_a_win() -> None:
+    """Starting anyone over an inactive player is not a judgment the model made.
+
+    Counting it would inflate the record with calls that were decided by the injury report
+    rather than by the simulation.
+    """
+    record = score_decisions([(A, B, True)], {A: 14.0})
+    assert record.graded == 0
+    assert record.points_gained == 0.0
+
+
+def test_a_slot_with_no_alternative_is_not_a_call() -> None:
+    record = score_decisions([(A, None, True)], {A: 14.0})
+    assert record.graded == 0
+    assert record.declined == 0
+
+
+def test_an_exact_tie_is_neither_right_nor_wrong() -> None:
+    record = score_decisions([(A, B, True)], {A: 12.0, B: 12.0})
+    assert (record.right, record.wrong, record.tied) == (0, 0, 1)
+    assert record.graded == 1
+
+
+def test_an_ungraded_record_says_so_rather_than_reporting_nothing() -> None:
+    assert "No start/sit calls have been graded" in score_decisions([], {}).verdict

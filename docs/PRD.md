@@ -57,9 +57,9 @@ no settings page for things I will set once.
 Trades. Draft assistance. Multiple leagues. DFS. League-mate-facing anything. Chat. Push
 notifications beyond one weekly email. Mobile app — the web page works on a phone.
 
-## The two conversations
+## The three conversations
 
-Changed 2026-09-13. This used to specify two screens. It now specifies two conversations,
+Changed 2026-09-13. This used to specify two screens. It now specifies conversations,
 for the reason written at the top of "What would make this fail": the failure mode ranked
 first is "I stop opening it", and a screen has to be opened. See `docs/DECISIONS.md`.
 
@@ -119,11 +119,40 @@ budget is read live from Yahoo on every call.
 plan. Only after a yes does `ff_confirm` spend the approval. No single tool does both — see
 "Non-negotiable product rules" below and `CLAUDE.md` §5.
 
+### Any time
+
+> **me:** has any of this actually been right?
+
+`ff_how_am_i_doing` scores the app against what happened. Three answers, and they are
+different questions:
+
+```
+Start/sit calls   4-2 on calls it was willing to make, worth +11.3 points.
+                  5 more were too close to call and are not graded.
+
+Lineups           3 of 6 weeks ahead of simply starting the highest projections.
+
+Sources           espn    MAE 5.31   runs hot  (+1.24)    412 forecasts
+                  sleeper MAE 5.44   unbiased  (-0.11)    398 forecasts
+                  ensemble MAE 5.12
+                  "Too close to call. ensemble is ahead by 0.19 points of MAE, and the
+                   error bar on that gap is 0.14, so the ordering could flip next week."
+```
+
+The last line is the point of the whole feature. The app will not tell the owner one source
+beats another until a paired comparison clears two standard errors, because weekly error is
+around 5 points and the sources sit fractions of a point apart. A sorted table would invite
+reading a ranking into noise.
+
+Slots the app called too close are excluded from the start/sit record rather than graded. A
+refusal to predict is not a prediction — see `docs/DECISIONS.md`.
+
 ### What is still a screen
 
-Nothing, today. The calibration view in V2 is the honest candidate: a table of projected
-versus actual across a season is worse in prose than in pixels. `frontend/` is kept, not
-deleted, for that reason.
+Nothing, today. The calibration view remains the honest V2 candidate: `ff_how_am_i_doing`
+answers "was it right" in prose, but projected-versus-actual across a season is a scatter
+plot, and a scatter plot is worse in prose than in pixels. `frontend/` is kept, not deleted,
+for that reason.
 
 ## Non-negotiable product rules
 
@@ -142,6 +171,10 @@ These come from `CLAUDE.md` §3 and are product requirements, not engineering pr
    and expires in six hours.
 6. **The tools report, they do not re-derive.** A recommendation restated more confidently
    than the tool stated it is a misquote, and the server's instructions say so.
+7. **The app can be asked whether it is working, and the answer is allowed to be bad.**
+   `ff_how_am_i_doing` reports a losing record as readily as a winning one, and refuses to
+   rank two projection sources until the evidence separates them. A scorecard that cannot
+   come back negative is marketing.
 
 ## What would make this fail
 

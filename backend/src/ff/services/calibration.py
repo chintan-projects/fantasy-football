@@ -21,13 +21,15 @@ from ff.adapters.store import Store
 from ff.core.logging import get_logger
 from ff.domain.calibration import (
     Comparison,
+    DecisionRecord,
     LineupScore,
     SourceScore,
     compare,
+    score_decisions,
     score_lineup,
     score_sources,
 )
-from ff.domain.models import Player, PlayerId, Position, Slot
+from ff.domain.models import Confidence, Player, PlayerId, Position, Slot
 
 log = get_logger(__name__)
 
@@ -39,6 +41,7 @@ class WeekReport:
     ensemble: SourceScore | None
     versus_ensemble: list[Comparison]
     lineup: LineupScore | None
+    decisions: DecisionRecord | None = None
     note: str | None = None
 
 
@@ -49,6 +52,7 @@ class SeasonReport:
     ensemble: SourceScore | None
     versus_ensemble: list[Comparison]
     lineups: list[LineupScore]
+    decisions: DecisionRecord | None = None
     note: str | None = None
 
     @property
@@ -119,6 +123,7 @@ def week_report(store: Store, week: int, kind: str = "lineup") -> WeekReport | N
         ensemble=ensemble,
         versus_ensemble=comparisons,
         lineup=_lineup_score(store, snapshot, week, actual),
+        decisions=score_decisions(_decisions_for(store, week), actual),
     )
 
 
@@ -133,6 +138,7 @@ def season_report(store: Store, kind: str = "lineup") -> SeasonReport:
     pooled_actual: dict[PlayerId, float] = {}
     lineups: list[LineupScore] = []
     scored_weeks: list[int] = []
+    all_decisions: list[tuple[PlayerId, PlayerId | None, bool]] = []
 
     for week in store.weeks_with_snapshots(kind):
         snapshot = store.latest_snapshot(week, kind)
@@ -155,6 +161,18 @@ def season_report(store: Store, kind: str = "lineup") -> SeasonReport:
         if lineup is not None:
             lineups.append(lineup)
 
+        # Namespaced like the forecasts above, and for the same reason: the same two
+        # players can be contested in several weeks, and grading them once would throw
+        # away every week but one.
+        for started, benched, confident in _decisions_for(store, week):
+            all_decisions.append(
+                (
+                    PlayerId(f"{week}:{started}"),
+                    None if benched is None else PlayerId(f"{week}:{benched}"),
+                    confident,
+                )
+            )
+
     per_source = {k: v for k, v in pooled_forecasts.items() if k != _ENSEMBLE}
     comparisons = [
         c for name in per_source if (c := compare(pooled_forecasts, pooled_actual, _ENSEMBLE, name))
@@ -173,6 +191,7 @@ def season_report(store: Store, kind: str = "lineup") -> SeasonReport:
         ),
         versus_ensemble=comparisons,
         lineups=lineups,
+        decisions=score_decisions(all_decisions, pooled_actual),
         note=None if scored_weeks else "No week has both a snapshot and recorded outcomes yet.",
     )
 
@@ -272,6 +291,29 @@ def _lineup_score(
         slots=tuple(recommended.values()),
         actual=actual,
     )
+
+
+def _decisions_for(store: Store, week: int) -> list[tuple[PlayerId, PlayerId | None, bool]]:
+    """The contested-slot calls a week's lineup recommendation made.
+
+    Empty for recommendations written before contested slots carried player ids. Those
+    weeks are not gradeable on individual calls and never will be: the payload recorded
+    player *names*, and a name does not join to an outcome. Same unrecoverable shape as
+    BUG-012, which is why this was built before another week went by.
+    """
+    recommendations = [r for r in store.list_recommendations(week=week) if r.kind == "lineup"]
+    if not recommendations:
+        return []
+
+    out: list[tuple[PlayerId, PlayerId | None, bool]] = []
+    for entry in recommendations[0].payload.get("contested_slots") or []:
+        started = entry.get("start_id")
+        if not started:
+            continue
+        benched = entry.get("over_id")
+        confident = str(entry.get("confidence", "")) != Confidence.TOO_CLOSE.value
+        out.append((PlayerId(str(started)), PlayerId(str(benched)) if benched else None, confident))
+    return out
 
 
 def _position(raw: Any) -> Position | None:

@@ -475,3 +475,68 @@ def test_a_failed_confirm_still_says_which_move_failed(tmp_path: Path) -> None:
     second = call(deps, "ff_confirm", {"approval_id": approval_id})
     assert second["submitted"] is False
     assert second["move"], "an error that does not say what it was about is half an error"
+
+
+def test_contested_slots_carry_player_ids_so_the_calls_can_be_graded_later(
+    tmp_path: Path,
+) -> None:
+    """Names are for the reader; ids are for the scoring. Both, or one audience loses.
+
+    A contested slot recorded only by name cannot be joined to an outcome -- outcomes are
+    keyed by player id -- so the call would be unreconstructable the moment the week ended.
+    """
+    deps = build(tmp_path)
+    plan = call(deps, "ff_recommend_lineup")
+    assert plan["contested_slots"], "the fixture week has contested slots"
+
+    stored = deps.store.list_recommendations(week=FIXTURE_WEEK)[0]
+    for decision in stored.payload["contested_slots"]:
+        assert decision["start_id"], decision
+        assert decision["start"] != decision["start_id"], "the name must survive too"
+        if decision["over"] is not None:
+            assert decision["over_id"], decision
+        else:
+            assert decision["over_id"] is None, "absent means None, never the string None"
+
+
+def test_the_start_sit_record_grades_only_the_calls_the_app_was_willing_to_make(
+    tmp_path: Path,
+) -> None:
+    deps = build(tmp_path)
+    plan = call(deps, "ff_recommend_lineup")
+    contested = plan["contested_slots"]
+
+    # Give every player a score, so nothing is skipped for want of an outcome.
+    snapshot = deps.store.latest_snapshot(FIXTURE_WEEK, "lineup")
+    assert snapshot is not None
+    for index, player_id in enumerate(snapshot["projections"]):
+        deps.store.record_outcome(FIXTURE_WEEK, player_id, float(index))
+
+    record = call(deps, "ff_how_am_i_doing")["start_sit_calls"]
+    declined = sum(1 for c in contested if c["confidence"] == "too_close_to_call")
+    gradeable = sum(
+        1 for c in contested if c["confidence"] != "too_close_to_call" and c["over_id"] is not None
+    )
+    assert record["too_close_to_call_not_graded"] == declined
+    assert record["right"] + record["wrong"] + record["tied"] == gradeable
+
+
+def test_the_scheduler_and_the_tool_persist_the_same_recommendation_shape(
+    tmp_path: Path,
+) -> None:
+    """BUG-013 again, locked at the level that caused it.
+
+    Both writers now call one function. This asserts the keys agree rather than that any
+    particular key exists, so a field added to one is a field added to both.
+    """
+    from ff.api.scheduler import snapshot_lineup
+
+    deps = build(tmp_path)
+    from_tool = call(deps, "ff_recommend_lineup")
+    snapshot_lineup(deps)
+
+    stored = [r for r in deps.store.list_recommendations(week=FIXTURE_WEEK) if r.kind == "lineup"]
+    assert len(stored) == 2
+    from_job = stored[0].payload
+    assert set(from_job) == set(from_tool) - {"recommendation_id"}
+    assert set(from_job["contested_slots"][0]) == set(from_tool["contested_slots"][0])

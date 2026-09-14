@@ -281,7 +281,8 @@ backend/src/ff/
   domain/     pure types + decision math (no I/O — enforced in CI)
   adapters/   yahoo/ espn/ sleeper/ nflverse/ store (SQLite)
   services/   week, projections, recommend, waivers, approvals, calibration
-  api/        mcp.py (the front door) · auth.py · deps.py · scheduler.py · app.py (demoted)
+  api/        mcp.py (the front door) · auth.py · deps.py · payloads.py · scheduler.py
+              app.py (demoted)
 frontend/     Next.js — demoted 2026-09-13, kept not deleted. See frontend/README.md
 docs/         ARCHITECTURE.md PRD.md DEPLOY.md DECISION_MATH.md DATA_SOURCES.md YAHOO_SETUP.md DECISIONS.md
 Dockerfile · fly.toml — the deployed MCP server

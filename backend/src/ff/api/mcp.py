@@ -39,6 +39,7 @@ from starlette.responses import JSONResponse
 from ff.api import scheduler
 from ff.api.auth import OnlyTheOwner, github_auth
 from ff.api.deps import Deps, default_deps
+from ff.api.payloads import lineup_plan, lineup_reasoning
 from ff.core.errors import FFError
 from ff.core.logging import get_logger
 from ff.domain.models import Position
@@ -124,48 +125,9 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
             to_week_inputs(bundle, draws=d.config.monte_carlo_draws, seed=d.config.random_seed)
         )
 
-        by_id = {str(p.id): p for p in bundle.roster.players}
-        plan = {
-            "week": wk,
-            "win_probability": round(result.lineup.win_probability, 4),
-            "win_probability_band": [round(x, 4) for x in result.lineup.win_probability_band],
-            "expected_points": round(result.lineup.expected_points, 2),
-            "starters": [
-                {
-                    "slot": slot.value,
-                    "player": by_id[str(pid)].name if str(pid) in by_id else str(pid),
-                    "player_id": str(pid),
-                    "projection": round(bundle.projections[pid].mean, 2)
-                    if pid in bundle.projections
-                    else None,
-                }
-                for pid, slot in result.lineup.assignments
-            ],
-            "contested_slots": [
-                {
-                    "slot": dec.slot.value,
-                    "start": by_id[str(dec.winner)].name
-                    if str(dec.winner) in by_id
-                    else str(dec.winner),
-                    "over": by_id[str(dec.runner_up)].name
-                    if dec.runner_up and str(dec.runner_up) in by_id
-                    else None,
-                    "win_probability_delta": round(dec.win_prob_delta, 4),
-                    "confidence": dec.confidence.value,
-                    "reason": dec.reason,
-                }
-                for dec in result.decisions
-            ],
-            "sources": _sources(bundle.sources),
-            "unprojected": [
-                by_id[str(pid)].name if str(pid) in by_id else str(pid)
-                for pid in bundle.unprojected
-            ],
-            "caveats": list(result.caveats) + list(bundle.notes),
-        }
-        reasoning = " ".join(result.lineup.notes) + " " + " ".join(result.caveats)
+        plan = lineup_plan(result, bundle, wk)
         plan["recommendation_id"] = d.store.save_recommendation(
-            wk, "lineup", plan, reasoning.strip(), snapshot_id=snapshot_id
+            wk, "lineup", plan, lineup_reasoning(result), snapshot_id=snapshot_id
         )
         return plan
 
@@ -449,6 +411,7 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
                 "ensemble": _source_score(report.ensemble) if report.ensemble else None,
                 "ensemble_versus_each_source": [c.verdict for c in report.versus_ensemble],
                 "lineup": _lineup_score(report.lineup),
+                "start_sit_calls": _decision_record(report.decisions),
             }
 
         season = calibration.season_report(d.store)
@@ -461,6 +424,7 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
             "ensemble": _source_score(season.ensemble) if season.ensemble else None,
             "ensemble_versus_each_source": [c.verdict for c in season.versus_ensemble],
             "lineups": [_lineup_score(ls) for ls in lineups],
+            "start_sit_calls": _decision_record(season.decisions),
             "weeks_ahead_of_the_obvious_lineup": season.weeks_ahead_of_baseline,
             "weeks_with_a_lineup_graded": len(lineups),
             "caveats": [
@@ -470,6 +434,8 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
                 "Start/sit optimization is worth roughly 1-3 win-probability points a week. "
                 "[empirical] Over a handful of weeks that is invisible under the noise, so "
                 "a losing record here early is not evidence the math is wrong.",
+                "Slots the app called too close are excluded from the start/sit record "
+                "rather than graded. They are a refusal to predict, not a prediction.",
             ],
         }
 
@@ -728,4 +694,18 @@ def _lineup_score(score: Any) -> dict[str, Any] | None:
         "edge": round(score.edge, 2),
         "points_left_on_the_bench": round(score.left_on_bench, 2),
         "starters_with_no_recorded_score": score.missing_players,
+    }
+
+
+def _decision_record(record: Any) -> dict[str, Any] | None:
+    """The start/sit record. ``points_gained`` leads, because win-loss hides the size."""
+    if record is None:
+        return None
+    return {
+        "verdict": record.verdict,
+        "right": record.right,
+        "wrong": record.wrong,
+        "tied": record.tied,
+        "too_close_to_call_not_graded": record.declined,
+        "points_gained": round(record.points_gained, 2),
     }

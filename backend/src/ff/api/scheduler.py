@@ -30,6 +30,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from ff.api.deps import Deps
+from ff.api.payloads import lineup_plan, lineup_reasoning
 from ff.core.logging import get_logger
 from ff.services import calibration
 from ff.services import waivers as waiver_service
@@ -69,20 +70,13 @@ def snapshot_lineup(deps: Deps) -> str:
     result = recommend(
         to_week_inputs(bundle, draws=deps.config.monte_carlo_draws, seed=deps.config.random_seed)
     )
+    # The same payload the tool returns, built by the same function. Shaping it here
+    # independently is what produced BUG-013.
     return deps.store.save_recommendation(
         week,
         "lineup",
-        {
-            "win_probability": result.lineup.win_probability,
-            # Same shape the ff_recommend_lineup tool persists. Two shapes for one thing
-            # meant calibration could only grade half the recommendations, and the half it
-            # could not grade simply did not appear in the report.
-            "starters": [
-                {"slot": slot.value, "player_id": str(pid)}
-                for pid, slot in result.lineup.assignments
-            ],
-        },
-        " ".join(result.caveats),
+        lineup_plan(result, bundle, week),
+        lineup_reasoning(result),
         snapshot_id=snapshot_id,
     )
 

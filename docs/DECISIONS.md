@@ -5,6 +5,31 @@ Format: date · decision · why · what would change our mind.
 
 ---
 
+## 2026-09-14 · A call the app refused to make is not a call it got wrong
+
+`ff_how_am_i_doing` now reports a start/sit record — when it said start X over Y, who
+scored more. Slots it called "too close to call" are counted and reported, and deliberately
+**not graded**.
+
+The tempting alternative is to grade everything, on the grounds that the app named a
+starter either way and the owner had to start somebody. It is wrong for a reason worth
+writing down: a too-close verdict is a statement that the model cannot separate the two, so
+the outcome is a coin flip. Coins land both ways, so grading them adds noise symmetrically
+— which does not cancel out, it *dilutes*. A model that declines half its calls and wins
+the rest would score the same as one that guesses on everything, and the honest model looks
+worse for every slot it was honest about. `CLAUDE.md` §3 makes "too close to call" a
+required output; scoring it as a prediction would make it a liability.
+
+The record leads with **points gained**, not win-loss, for a related reason: a 6-4 record
+worth +2 points is a rounding error and a 4-6 record worth +30 is a good season. Win-loss
+hides the size of the calls, which is the part that decides matchups.
+
+**Changes our mind:** evidence that the too-close bucket is not actually a coin flip — if
+those slots resolve in the recommended player's favour well above half the time, the
+threshold is too conservative and the bucket is hiding real signal.
+
+---
+
 ## 2026-09-14 · The assisted path is the product, because Yahoo does not sell the other one
 
 Yahoo's access application page states it directly: "The Yahoo Fantasy Sports API currently

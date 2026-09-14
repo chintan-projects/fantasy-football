@@ -31,15 +31,15 @@ milestones:
       Two defects came out of it -- BUG-012, per-source projections were being averaged
       away so the headline metric was uncomputable, and BUG-013, two persisted shapes for
       one recommendation.
-      Not built: a backtest that replays stored snapshots, and hit rate on individual
-      start/sit calls (contested_slots is returned to the owner but not persisted, so the
-      pairs cannot be recovered).
+      Start/sit hit rate added 2026-09-14: contested slots now persist start_id and
+      over_id, both writers go through api/payloads.py, and score_decisions grades only
+      the calls the app was willing to make. Slots called too close are counted, never
+      graded -- see docs/DECISIONS.md.
+      Not built: a backtest that replays stored snapshots.
 
 in_progress: []
 
 next:
-  - Persist contested_slots with each lineup recommendation, so the per-decision hit rate
-    becomes computable. Same class of loss as BUG-012 -- not recoverable after the fact.
   - Re-record tests/fixtures/yahoo/ against the live league once Yahoo approves access.
     Every Yahoo fixture is hand-built from documented shapes today.
   - Fix BUG-001, two mypy errors in adapters/yahoo/executors.py. Now live code rather

@@ -41,8 +41,11 @@ reasoned to has no persisted input snapshot, is not reproducible, and can never 
 against what actually happened. `CLAUDE.md` §2.5 calls that scoring the single most
 important observability requirement here.
 
-So the six judging tools each call `services/`, persist the snapshot they decided on, and
-return the computed answer with its reasoning attached. Two tools return raw data —
+So the judging tools each call `services/`, persist the snapshot they decided on, and
+return the computed answer with its reasoning attached. `ff_how_am_i_doing` is bound by the
+same rule for the same reason: it returns the computed verdict — including "too close to
+call" — rather than handing the model a table of errors to average, because a significance
+threshold applied by a language model is not a threshold. Two tools return raw data —
 `ff_my_roster` and `ff_league_transactions` — because a human sometimes just wants to look,
 and both say in their own descriptions to use the judging tool for the decision.
 
@@ -181,6 +184,14 @@ by how the sources differ. Below 30 pairs, or within two standard errors, the re
 so and names no winner. Weekly MAE runs near 5 points against means in the low teens
 `[empirical]`, so most gaps between sources need most of a season to surface.
 
+**Decision quality** is the question an owner actually asks: when it said start Bowers
+over McBride, who scored more? It is reported as a record plus the points those calls were
+worth, because a 6-4 record worth two points and a 4-6 record worth thirty are different
+seasons and win-loss hides both. Slots the model called too close are counted and **not
+graded** — "too close to call" is a real output (`CLAUDE.md` §3), and a real output cannot
+also be a prediction. Grading coin flips would fill the record with noise in whichever
+direction the coins fell, punishing the model for being honest.
+
 **Lineup quality** has one number per week, so seventeen a season, and no arithmetic makes
 that a significance test. It is a record, not a p-value. The benchmark is the
 highest-projection lineup, not the hindsight-perfect one: perfect is unreachable by anyone,
@@ -196,6 +207,13 @@ Two consequences shaped the code rather than the report:
   snapshot persists it (BUG-012).
 - The snapshot carries slot eligibility, because hindsight has to rebuild the lineup that
   was *legal at the time*. Slot rules are a league setting and can be edited mid-season.
+- Contested slots persist `start_id` and `over_id` alongside the names. Outcomes are keyed
+  by player id, so a call recorded only by name is ungradeable the moment the week ends —
+  and two players can share a name.
+- Both writers of a lineup recommendation — the tool and the Sunday job — go through
+  `api/payloads.py`. They used to shape it independently, and BUG-013 is what that cost:
+  two formats, one reader, half a season silently ungraded. A test asserts their keys
+  agree rather than asserting any particular key, so a field added to one is added to both.
 
 ## Hosting
 
