@@ -329,9 +329,9 @@ class CallbackResult:
                 "2026-09-13: fspt-r and fspt-w are both refused, and sending no scope at "
                 "all works.\n\n"
                 "Fix: leave FF_YAHOO_SCOPE unset -- that is the default now -- and run "
-                "`make auth` again. If it still fails, the app itself has no Fantasy Sports "
-                "permission: open it at developer.yahoo.com/apps, tick Fantasy Sports under "
-                "API Permissions, save, and retry."
+                "`make auth` again. If it still fails, the app has no Fantasy Sports "
+                "permission, and that is not something the portal lets you grant yourself: "
+                "see CLAUDE.md section 6."
             )
         detail = f": {self.description}" if self.description else ""
         return (

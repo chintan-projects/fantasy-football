@@ -286,10 +286,16 @@ class TestCallbackParsing:
         assert result.is_final
 
     def test_the_invalid_scope_message_names_the_actual_cause(self) -> None:
-        """The one failure we can diagnose outright, so it should not read as a mystery."""
+        """The one failure we can diagnose outright, so it should not read as a mystery.
+
+        It must not send the reader to tick a checkbox that does not exist. Probed
+        2026-09-14: an app's API Permissions list offers OpenID Connect only, with no
+        Fantasy Sports entry, so advice to enable it there is advice to fail.
+        """
         result = parse_callback("error=invalid_scope&error_description=invalid+scope")
         assert "FF_YAHOO_SCOPE" in result.message
-        assert "API Permissions" in result.message
+        assert "Fantasy Sports" in result.message
+        assert "API Permissions" not in result.message
 
     def test_an_unknown_error_is_repeated_verbatim(self) -> None:
         result = parse_callback("error=access_denied&error_description=user+said+no")

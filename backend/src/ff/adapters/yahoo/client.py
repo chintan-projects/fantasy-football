@@ -135,13 +135,12 @@ class YahooClient:
                 "Yahoo accepted the token but refused the call: "
                 'oauth_problem="additional_authorization_required".\n'
                 "The token is fine. The app is not approved for the Fantasy Sports API.\n"
-                "Two causes, in the order worth checking:\n"
-                "  1. The app has no Fantasy Sports permission. Open it at "
-                "developer.yahoo.com/apps, tick Fantasy Sports under API Permissions, "
-                "save, and run `make auth` again.\n"
-                "  2. The permission is set but the access application is still under "
-                "review at sports.yahoo.com/developer/access. Nothing in the code changes "
-                "this one -- it is a wait. See CLAUDE.md section 6."
+                "There is nothing to fix in this repo and nothing to tick in the developer "
+                "portal: as of 2026-09-14 an app's API Permissions list offers OpenID "
+                "Connect only, with no Fantasy Sports entry to select. Approval on the "
+                "access application at sports.yahoo.com/developer/access is what grants "
+                "it. Until that lands, this error is the expected answer -- it is a wait, "
+                "not a misconfiguration. See CLAUDE.md section 6."
             )
 
         detail = body.strip()[:200] or f"HTTP {status} with an empty body"

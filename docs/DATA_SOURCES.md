@@ -212,10 +212,14 @@ Fantasy Sports API permission, and whether it is set to Read or Read/Write. So:
 
 * **Never send a `scope` parameter.** `FF_YAHOO_SCOPE` defaults to empty and should stay
   there.
-* **Read vs write is an app setting, not a request parameter.** Change it at
-  developer.yahoo.com/apps, not in the authorize URL.
-* If `invalid_scope` comes back with no scope sent, the app has no Fantasy Sports
-  permission at all. Tick it under API Permissions and save.
+* **Read vs write is an app setting, not a request parameter.** It is not in the authorize
+  URL, and — see the next point — it is not in the app settings either.
+* **Fantasy Sports is not in the API Permissions list.** Probed 2026-09-14 on a real app:
+  the list offers OpenID Connect Permissions (Email, Profile) and nothing else. There is no
+  Fantasy Sports checkbox to tick, so `additional_authorization_required` is not a
+  misconfiguration anyone can repair from the portal. The access application at
+  sports.yahoo.com/developer/access is the only route, and approval presumably adds the
+  entry. `[empirical]`
 
 This is the second documented-fact-is-wrong finding in this file, which is why CLAUDE.md
 §7 says to probe the data rather than the documentation.

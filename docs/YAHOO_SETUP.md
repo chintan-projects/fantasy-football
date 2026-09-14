@@ -35,16 +35,23 @@ https://developer.yahoo.com/apps/create/
 | Application Name | `fantasy-football-copilot` |
 | Application Type | **Installed Application** |
 | Redirect URI | `https://localhost:8080/callback` |
-| API Permissions | **Fantasy Sports** → **Read/Write** |
+| API Permissions | Whatever is offered — see below |
 
-Two things people get wrong:
+**There is no Fantasy Sports checkbox.** Probed on a real app 2026-09-14: the API
+Permissions list offers OpenID Connect Permissions (Email, Profile) and nothing else. Every
+guide written before this says to tick Fantasy Sports and choose Read/Write; that option is
+not there. Creating the app gets you a client id and secret that authenticate fine and are
+refused by every Fantasy endpoint with `additional_authorization_required` until the access
+application in Step 0 is approved. That approval is the whole gate. `[empirical]`
+
+Two more things people get wrong:
 
 - **The redirect URI must be HTTPS.** Plain `http://localhost` is rejected. `oob` is still
   documented but the registration form wants a real URI and the maintained libraries have
   moved on — register the HTTPS one.
-- **Checking Read/Write on the app is separate from requesting the `fspt-w` scope in the
-  authorize URL.** Both are required. If they disagree you get a read-only token with **no
-  error message** — writes just fail later with a 401 that looks like an expired token.
+- **Do not send a scope.** Yahoo rejects every explicit `fspt-*` scope string and takes
+  permissions from the app instead. `FF_YAHOO_SCOPE` defaults to empty; leave it there.
+  Older guides tell you to request `fspt-w` and they are wrong.
 
 Save the **Client ID** and **Client Secret**.
 

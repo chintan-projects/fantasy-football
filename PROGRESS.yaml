@@ -57,10 +57,12 @@ open_questions:
       nothing to score until this clears, however finished the calibration code is. See
       BUG-004 for the scope fix that was needed to get this far.
     next_step: >
-      Application submitted 2026-09-14 via sports.yahoo.com/developer/access. Also confirm
-      Fantasy Sports is ticked under API Permissions at developer.yahoo.com/apps -- an
-      unticked permission gives the identical error and is a 30-second fix independent of
-      the review. Then re-run make leagues and re-record the fixtures.
-      Read access is the whole question now; write is settled and not coming (CLAUDE.md 6).
+      Wait. Application submitted 2026-09-14 via sports.yahoo.com/developer/access.
+      The "check the app permission" theory is dead: inspected the real app on 2026-09-14
+      and its API Permissions list offers OpenID Connect only, with no Fantasy Sports
+      entry to tick. So there is no self-service fix and no second cause -- approval is the
+      entire gate. Error messages and docs that said otherwise are corrected.
+      On approval, re-run make auth, then make leagues, then re-record the fixtures.
+      Read access is the whole question; write is settled and not coming (CLAUDE.md 6).
 
 # Backlog lives in PROGRESS-archive.yaml. This file is active work and blockers only.
