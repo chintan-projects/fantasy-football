@@ -34,7 +34,7 @@ from ff.adapters.yahoo.auth import (  # noqa: E402
 from ff.adapters.yahoo.client import YahooClient  # noqa: E402
 from ff.core.cache import FileCache  # noqa: E402
 from ff.core.config import settings  # noqa: E402
-from ff.core.errors import FFError  # noqa: E402
+from ff.core.errors import AuthExpired, FFError  # noqa: E402
 
 result_holder: dict[str, CallbackResult] = {}
 
@@ -144,6 +144,14 @@ def main() -> int:
     client = YahooClient(auth, FileCache(Path(".cache")))
     try:
         game_id = client.game_id()
+    except AuthExpired as exc:
+        # The token saved. What failed is a permission Yahoo has not granted yet, and this
+        # script cannot obtain it -- so exiting non-zero would report a working authorization
+        # as a broken one, and would break `make auth && make leagues` for a reason the next
+        # command cannot fix either. Say what happened and succeed.
+        print(f"\nThe token saved and the first read was refused: {exc}")
+        print("\nThe authorization itself worked. Nothing here needs re-running.")
+        return 0
     except FFError as exc:
         print(f"\nThe token saved but the first read failed: {exc}")
         return 1
