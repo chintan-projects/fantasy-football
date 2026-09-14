@@ -233,9 +233,20 @@ bid = value − winner's_curse_shading − option_value(λ_t) × dollars_committ
 
 `[empirical]` — https://sports.yahoo.com/developer/access/, read 2026-09-14. This is not
 "read-only by default pending review", which is what this section said for the first day
-of the project and which turned out to be the wrong reading. There is no review to pass
-and no scope to request. The write endpoints are still documented and `fspt-w` still
-exists; neither is obtainable.
+of the project and which turned out to be the wrong reading. The write endpoints are still
+documented and `fspt-w` still exists; neither is obtainable through the portal.
+
+One correction to an earlier version of this section, which said there was "no scope to
+request". The same form invites the request:
+
+> If your use case is unique and requires read/write access, please include additional
+> details in the notes section below.
+
+`[empirical]` — same page, read 2026-09-14. So writes are not categorically unavailable;
+they are not self-serve, and asking means making a case. Nothing here changes: the default
+is read-only, `AssistedExecutor` ships, and a one-owner lineup tool is not the unique case
+that argument needs. Do not spend the read application's credibility asking for writes we
+have a fifteen-second manual answer for.
 
 So the assisted path is the product, not the contingency:
 

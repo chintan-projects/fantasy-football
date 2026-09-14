@@ -90,6 +90,71 @@ The access token lives **one hour**. The app refreshes proactively at 55 minutes
 token is long-lived and survives a password change. `redirect_uri` is required on the refresh
 call too and must match exactly.
 
+## Step 3b — The access application, and why the notes field is the whole thing
+
+There is no self-serve path left. An app's API Permissions list offers OpenID Connect only;
+there is no Fantasy Sports entry to tick, and creating another app does not help. Verified
+against the real app on 2026-09-14. Approval on the application is the entire gate.
+
+The form asks three things: expected users, your Client ID, and notes. The first two take a
+second. The notes field is the whole application, because of what the page says about how
+submissions are judged:
+
+> Each application is reviewed by the Yahoo Fantasy Sports team, and given current request
+> volume, incomplete or insufficiently detailed submissions cannot be evaluated and will be
+> closed without further correspondence.
+
+`[empirical]` — https://sports.yahoo.com/developer/access/, read 2026-09-14. Two
+consequences. A thin submission is not queued, it is closed. And silence carries no
+information: it looks identical to a pending review. No timeframe is published, and no
+public report of a completed approval could be found — the open questions asking for one
+(uberfastman/yfpy#84, derekrbreese/fantasy-football-mcp-public#18) are unanswered.
+
+The page also says what it wants named: the product being built, the Yahoo Fantasy Sports
+data required, and the intended user base, "including where access is limited to personal or
+single league use". That last clause is the one favourable thing here — single-league
+personal use is a category Yahoo asks you to declare, not one it asks you to apologise for.
+
+**Expected users:** Small (<1,000). The honest number is 1.
+
+**Notes — copy this, and change nothing that is not true:**
+
+```
+Product: a personal assistant for one Yahoo fantasy football team. It reads my league
+once or twice a week and answers two questions: which players to start on Sunday, and
+what to bid on whom out of my FAAB budget on Tuesday. It runs as an MCP server that only
+I connect to, from Claude.
+
+Users: one. Me. One league, one team. It is not distributed, not published, not sold, and
+has no sign-up. There is no second user to add without my own credentials.
+
+Data required, read only:
+  GET /game/nfl                                      resolve the current season's game id
+  GET /users;use_login=1/.../leagues                 find my own league
+  GET /league/{key}/settings                         roster slots and scoring rules
+  GET /league/{key}/players                          free agents, for waiver analysis
+  GET /league/{key}/transactions;type=add            past winning FAAB bids in my league
+  GET /team/{key}                                    my FAAB balance
+  GET /team/{key}/roster;week={n}                    my roster
+  GET /team/{key}/matchups;weeks={n}                 my opponent that week
+
+Write access: not requested. I make the moves myself in the Yahoo app; the tool gives me
+the decision and a link.
+
+Rate and handling: calls are serialized behind a single lock, paced at one per second,
+and cached per endpoint -- league settings for a week, rosters for minutes. A normal week
+is a few dozen requests. Nothing is redistributed, republished or shared; the data is
+read, used to compute one answer for me, and stored only on a machine I own.
+```
+
+Three things this is doing on purpose. It names the endpoints rather than saying "league
+data", so the reviewer does not have to guess at scope. It declines write access in
+writing, which removes the reason to think about it. And it says the rate limiting is
+already built, which it is — see `adapters/yahoo/client.py`.
+
+If you already submitted something thinner, submit this. A closed application is not
+reopened by waiting, and re-applying costs nothing.
+
 ## Step 4 — Find your league
 
 Two numbers, and you can read both off your own team page without the API:
