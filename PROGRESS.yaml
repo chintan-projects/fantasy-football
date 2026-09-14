@@ -18,8 +18,8 @@ milestones:
       shipping path -- full decision, exact move, deep link, owner taps it -- and its
       output now names players and dollars rather than player keys. YahooApiExecutor stays
       in the tree, unproven; scripts/probe_write.py is a monitor, not a gate.
-      Action outstanding: set FF_WRITE_EXECUTOR=assisted on the deployed app. It is still
-      dryrun, which sends nothing but also tells the owner nothing actionable.
+      FF_WRITE_EXECUTOR=assisted is set on the deployed app, confirmed via /health
+      2026-09-14.
 
   - id: M6
     name: Calibration
@@ -54,7 +54,6 @@ next:
   - Set FF_YAHOO_LEAGUE_KEY and FF_YAHOO_TEAM_KEY on Fly to the real numbers. Both
     secrets exist and both hold the empty string, which is why the deployed tools answer
     "is not set". The numbers are in the team page URL; no API access needed. BUG-016.
-  - Set FF_WRITE_EXECUTOR=assisted on the deployed app. Carried over from M5.
   - Re-record tests/fixtures/yahoo/ against the live league once Yahoo approves access.
     Every Yahoo fixture is hand-built from documented shapes today.
   - Fix BUG-001, two mypy errors in adapters/yahoo/executors.py. Now live code rather
