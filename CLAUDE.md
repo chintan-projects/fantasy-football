@@ -224,28 +224,37 @@ bid = value − winner's_curse_shading − option_value(λ_t) × dollars_committ
 
 ---
 
-## 6. The known unknown: Yahoo write access
+## 6. Settled: Yahoo does not offer write access
 
-As of 2026-09-13 Yahoo's developer portal states the Fantasy Sports API is
-**read-only by default**, with write access granted only by application review
-(https://sports.yahoo.com/developer/access/). The write endpoints remain fully
-documented and library support exists, but no recent confirmation of a successful write
-was found.
+**Updated 2026-09-14.** The access application page now states it plainly:
 
-This is the single biggest risk to the product. Handle it:
+> The Yahoo Fantasy Sports API currently provides read access only. Write access is not
+> available at this time.
 
-1. Apply for read/write access immediately; state single-league personal use in the notes.
-2. Enable Read/Write on the app in YDN **and** request the `fspt-w` scope. Both are
-   required; a mismatch silently yields a read-only token.
-3. Build behind the `WriteExecutor` interface from day one, with two implementations:
-   - `YahooApiExecutor` — the real thing.
-   - `AssistedExecutor` — produces a copy-paste-ready move list plus a deep link to the
-     Yahoo page, so the product still works if writes are refused.
-4. A `scripts/probe_write.py` smoke test proves which path is live. Run it before
-   trusting anything in the write layer.
+`[empirical]` — https://sports.yahoo.com/developer/access/, read 2026-09-14. This is not
+"read-only by default pending review", which is what this section said for the first day
+of the project and which turned out to be the wrong reading. There is no review to pass
+and no scope to request. The write endpoints are still documented and `fspt-w` still
+exists; neither is obtainable.
 
-Never let the write question block the read + recommendation half of the app. That half
-is ~80% of the value and depends on nothing Yahoo has to approve.
+So the assisted path is the product, not the contingency:
+
+1. **`AssistedExecutor` is the shipping executor.** It does the whole decision and hands
+   back the exact move plus a deep link; the owner taps it in the Yahoo app. That is
+   fifteen seconds of a two-minute job, and it is the only part that was ever going to be
+   automated away.
+2. Its output is read by a human under time pressure on a Sunday morning. It says
+   "Bid $14 on Luke McCaffrey (WR). Leaves $86 of $100", never a player key. A move list
+   nobody can act on is the same as no move list.
+3. `YahooApiExecutor` stays in the tree, unregistered from daily use and unproven. It
+   costs nothing to keep and the day Yahoo changes its mind it is a config flag. Do not
+   delete it and do not pretend it works.
+4. `scripts/probe_write.py` is now a monitor rather than a gate: run it occasionally to
+   find out if the policy has changed.
+
+The consequence for scope: **approval on the access application unblocks reads, which is
+~80% of the value and everything the recommendation half needs.** The remaining 20% was
+never available to anyone. Do not treat the write path as a blocker on anything.
 
 ---
 

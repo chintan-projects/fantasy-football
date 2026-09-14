@@ -37,17 +37,18 @@ make mcp            # serve the MCP server locally on :8000/mcp
 
 Then `docs/DEPLOY.md` to put it on Fly and connect it to Claude.
 
-## The one big risk
+## The one big risk, now settled against us
 
-Yahoo now grants Fantasy API **write access by review only**, and read-only by default.
-Writes may simply not be available. So:
+Yahoo's access page says it plainly: **the Fantasy Sports API is read-only. Write access is
+not available at this time** — not to anyone, not by review. Read 2026-09-14.
 
-- The read half — projections, lineup recommendation, FAAB analysis — depends on nothing
-  Yahoo has to approve and is about 80% of the value. Build it first.
-- The write half sits behind a `WriteExecutor` interface with a fallback that renders the
-  move plus a deep link, so the product still works if writes are refused.
-- `make probe` settles which world you are in and writes the answer to
-  `.yahoo_write_status`, which is shown at the start of every Claude session.
+- The read half — projections, lineup recommendation, FAAB analysis, calibration — needs
+  only read access, and it is about 80% of the value.
+- The last step is a tap. The app does the whole decision and hands back the exact move
+  plus a deep link into the Yahoo app; you make it yourself. That is the `AssistedExecutor`
+  path and it is the shipping path, not a fallback.
+- `YahooApiExecutor` stays in the tree, unproven. `make probe` is now a monitor for the day
+  Yahoo changes its mind, not a gate on anything.
 
 ## What it will and will not do
 

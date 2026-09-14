@@ -566,6 +566,9 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
             str, Field(description="The approval_id returned by ff_propose_claim.")
         ],
     ) -> dict[str, Any]:
+        # Read the human sentence before consuming the approval, because after a failure
+        # the owner still needs to be told which move they were trying to make.
+        summary = d.store.approval_summary(approval_id)
         try:
             # Re-read the budget from Yahoo now, not from anything cached at propose time.
             budget = d.yahoo.faab_balance()
@@ -573,9 +576,14 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
                 approvals, executor_for(d.config), approval_id, remaining_budget=budget
             )
         except FFError as exc:
-            return {"submitted": False, "error": str(exc)}
+            return {"submitted": False, "move": summary, "error": str(exc)}
         return {
             "submitted": result.ok,
+            # The move in the owner's words, not the executor's. Executors speak in player
+            # keys, and on the assisted path -- which is the path Yahoo leaves us, see
+            # CLAUDE.md section 6 -- this text is the whole product: it is what the owner
+            # reads and then types into the Yahoo app. "470.p.31883" is not instructions.
+            "move": summary,
             "executor": result.executor,
             "detail": result.detail,
             "manual_url": result.manual_url,
@@ -584,8 +592,9 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
                 "Dry run: nothing was sent to Yahoo."
                 if result.executor == "dryrun"
                 else (
-                    "Yahoo write access is not available, so do this move by hand at the "
-                    "link above."
+                    "Yahoo's Fantasy Sports API is read-only -- write access is not "
+                    "offered to anyone. Make this move yourself at the link above; it "
+                    "takes about fifteen seconds. Everything up to the click is done."
                     if result.executor == "assisted"
                     else "Sent to Yahoo."
                 )

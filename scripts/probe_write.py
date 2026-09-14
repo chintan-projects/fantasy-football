@@ -1,11 +1,13 @@
-"""Settle the one question the whole write path depends on: do writes work?
+"""Do writes work? As of 2026-09-14 the answer is no, and this is how we would find out
+that it had changed.
 
-Yahoo states the Fantasy Sports API is read-only by default and grants write access only by
-review. The endpoints are still documented and library support ships, but that is not
-evidence. This performs the smallest possible reversible write -- a roster PUT that sets
-your lineup to exactly what it already is -- and reports the answer.
+Yahoo's access page states the Fantasy Sports API is read-only and that "write access is
+not available at this time" -- not by default, not pending review, not available. So this
+script is no longer a gate on shipping anything; it is a monitor. Run it occasionally, and
+if it ever succeeds, CLAUDE.md section 6 and docs/DECISIONS.md both need rewriting.
 
-Run it before trusting anything in the write layer.
+It performs the smallest possible reversible write -- a roster PUT that sets your lineup to
+exactly what it already is -- and reports the answer.
 """
 
 from __future__ import annotations

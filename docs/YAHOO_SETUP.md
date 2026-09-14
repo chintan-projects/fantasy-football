@@ -1,10 +1,13 @@
 # Yahoo setup — do this first
 
-Roughly 20 minutes, plus an unknown wait for Yahoo's review of write access.
+Roughly 20 minutes, plus an unknown wait for Yahoo's review.
 
 ## Step 0 — Apply for API access (do this today, it gates everything)
 
-Yahoo now reviews every application and **grants read-only by default**.
+Yahoo reviews every application, and **read access is the only thing on offer**: the access
+page states "Write access is not available at this time." `[empirical]`, read 2026-09-14.
+Apply for read anyway — it gates the entire product — but do not spend the notes field
+arguing for writes. See `CLAUDE.md` §6 for what that means for the design.
 
 1. Go to **https://sports.yahoo.com/developer/access/**
 2. Fill in the form. What matters:
@@ -13,9 +16,10 @@ Yahoo now reviews every application and **grants read-only by default**.
      I approve."
    - **Intended user base** — say **personal, single league, one user**.
    - **Expected users** — Small (<1,000).
-   - **Notes** — this is the field that decides it. Explicitly request **read/write access**
-     and say why: "I need write access to set my own lineup and submit my own waiver claims
-     with FAAB bids on my own team. No third-party data access, no redistribution."
+   - **Notes** — this is the field that decides it. Say exactly which data you read and
+     why: "I read my own league's settings, my roster, free agents, the transaction log and
+     my FAAB balance, to recommend my weekly lineup and my waiver bids. One league, one
+     user, no third-party data access, no redistribution." "
 3. Yahoo's warning is real: *"incomplete or insufficiently detailed submissions cannot be
    evaluated and will be closed without further correspondence."* Do not write two sentences.
 

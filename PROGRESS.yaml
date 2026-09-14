@@ -11,12 +11,15 @@ milestones:
 
   - id: M5
     name: Write path
-    status: blocked
-    blocked_by: [yahoo-api-access]
+    status: done_as_assisted
     notes: >
-      Two-step approval flow, journal and dry-run executor are built and tested through
-      ff_propose_claim / ff_confirm. What is unproven is YahooApiExecutor: nothing has
-      ever been written to Yahoo. make probe settles it once the app is approved.
+      Closed 2026-09-14, not blocked. Yahoo's access page states write access is not
+      available to anyone, so there is no approval to wait for. AssistedExecutor is the
+      shipping path -- full decision, exact move, deep link, owner taps it -- and its
+      output now names players and dollars rather than player keys. YahooApiExecutor stays
+      in the tree, unproven; scripts/probe_write.py is a monitor, not a gate.
+      Action outstanding: set FF_WRITE_EXECUTOR=assisted on the deployed app. It is still
+      dryrun, which sends nothing but also tells the owner nothing actionable.
 
   - id: M6
     name: Calibration
@@ -44,7 +47,7 @@ next:
 
 open_questions:
   - id: yahoo-api-access
-    question: Will Yahoo approve the Fantasy Sports API application?
+    question: Will Yahoo approve the Fantasy Sports API read application?
     status: blocked, acknowledged 2026-09-13, quoted 1-2 weeks
     impact: >
       OAuth works end to end and the token stores cleanly; every Fantasy endpoint then
@@ -54,8 +57,10 @@ open_questions:
       nothing to score until this clears, however finished the calibration code is. See
       BUG-004 for the scope fix that was needed to get this far.
     next_step: >
-      Confirm Fantasy Sports is ticked under API Permissions at developer.yahoo.com/apps
-      -- an unticked permission gives the identical error and is a 30-second fix. Then
-      wait, re-run make leagues, and re-record the fixtures.
+      Application submitted 2026-09-14 via sports.yahoo.com/developer/access. Also confirm
+      Fantasy Sports is ticked under API Permissions at developer.yahoo.com/apps -- an
+      unticked permission gives the identical error and is a 30-second fix independent of
+      the review. Then re-run make leagues and re-record the fixtures.
+      Read access is the whole question now; write is settled and not coming (CLAUDE.md 6).
 
 # Backlog lives in PROGRESS-archive.yaml. This file is active work and blockers only.

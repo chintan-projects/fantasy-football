@@ -448,3 +448,30 @@ def test_the_lineup_grade_compares_against_the_obvious_lineup_not_perfection(
     graded = result["lineups"][0]
     assert graded["points_if_you_started_the_highest_projections"] is not None
     assert graded["points_left_on_the_bench"] >= 0
+
+
+def test_the_confirm_step_names_the_move_in_words_not_in_player_keys(tmp_path: Path) -> None:
+    """Yahoo does not offer write access to anybody, so the assisted path is the product.
+
+    On that path this text is not a log line -- it is the instruction the owner reads and
+    then carries out in the Yahoo app. A player key is not an instruction.
+    """
+    deps = build(tmp_path, write_executor="assisted")
+    plan = propose(deps)
+    assert plan["approval_id"]
+
+    confirmed = call(deps, "ff_confirm", {"approval_id": plan["approval_id"]})
+    assert confirmed["executor"] == "assisted"
+    assert confirmed["move"] == plan["summary"]
+    assert plan["player"] in confirmed["move"]
+    assert confirmed["manual_url"]
+
+
+def test_a_failed_confirm_still_says_which_move_failed(tmp_path: Path) -> None:
+    deps = build(tmp_path, write_executor="assisted")
+    approval_id = propose(deps)["approval_id"]
+    call(deps, "ff_confirm", {"approval_id": approval_id})
+
+    second = call(deps, "ff_confirm", {"approval_id": approval_id})
+    assert second["submitted"] is False
+    assert second["move"], "an error that does not say what it was about is half an error"

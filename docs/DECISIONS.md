@@ -5,6 +5,30 @@ Format: date · decision · why · what would change our mind.
 
 ---
 
+## 2026-09-14 · The assisted path is the product, because Yahoo does not sell the other one
+
+Yahoo's access application page states it directly: "The Yahoo Fantasy Sports API currently
+provides read access only. Write access is not available at this time." `[empirical]`, read
+2026-09-14. For the first day of this project `CLAUDE.md` §6 read that as "read-only by
+default, write by review" and treated the write path as a risk to be managed. There is no
+review. It is not on offer.
+
+That retires the project's stated biggest risk by resolving it against us, and it costs
+less than it sounds: the owner was always going to read the recommendation and decide. What
+is lost is the final tap, not the reasoning, the snapshot, the approval record or the
+calibration. `AssistedExecutor` becomes the executor rather than the fallback, and its
+output is promoted from a log line to product copy — a human reads it on a phone and types
+it into the Yahoo app, so it names players and dollars, never player keys.
+
+`YahooApiExecutor` stays, unproven and unused. Deleting it would save nothing and would
+throw away the cheap option on Yahoo changing its mind.
+
+**Changes our mind:** Yahoo publishing a write grant, or a credible recent report of a
+successful write. `scripts/probe_write.py` is the check and it is now a monitor rather than
+a gate.
+
+---
+
 ## 2026-09-13 · Calibration reports an error bar, and refuses to rank sources without one
 
 `ff_how_am_i_doing` compares projection sources with a paired test and prints "too close to
