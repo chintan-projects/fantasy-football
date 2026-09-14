@@ -70,10 +70,24 @@ make auth
 ```
 
 ```bash
-fly ssh console -C "tee /data/yahoo.json" < backend/.tokens/yahoo.json
+fly ssh sftp put backend/.tokens/yahoo.json /data/yahoo.json --app ff-copilot
 ```
 
+**Use `sftp put`, not `ssh console -C "tee ..."`.** `tee` writes to the file *and* to
+stdout, so that form prints the access token and the refresh token to the terminal, where
+they land in scrollback and shell history. It happened once here, on 2026-09-13, and cost a
+token rotation. The access token expires in an hour; the refresh token does not, and mints
+new ones until the app is de-authorized in Yahoo account security.
+
 It refreshes itself in place after that. It lives on the volume, not in the image.
+
+### If a token does leak
+
+1. Yahoo account security → Apps connected to your account → remove the app. This is what
+   actually kills the refresh token; waiting for expiry does not.
+2. `make auth` on the laptop, then `sftp put` the new file.
+3. Regenerating the client secret at developer.yahoo.com/apps invalidates everything issued
+   under it, and then `.env` and the Fly secret both need updating.
 
 ---
 
