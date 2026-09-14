@@ -28,6 +28,7 @@ READ_ONLY_TOOLS = {
     "ff_my_roster",
     "ff_league_transactions",
     "ff_list_preferences",
+    "ff_how_am_i_doing",
 }
 WRITING_TOOLS = {"ff_record_preference", "ff_propose_claim", "ff_confirm"}
 
@@ -397,3 +398,53 @@ def test_the_server_never_asks_claude_for_a_metadata_document(tmp_path: Path) ->
     metadata = response.json()
     assert "client_id_metadata_document_supported" not in metadata, metadata
     assert metadata["registration_endpoint"], "DCR is the fallback; it has to be offered"
+
+
+def test_the_score_is_empty_early_and_says_so_rather_than_claiming_a_record(
+    tmp_path: Path,
+) -> None:
+    """An empty calibration report is the normal state in September.
+
+    It must not read as a failure, and it must not read as a clean sheet either -- an app
+    with no outcomes recorded has not been right, it has been unmeasured.
+    """
+    result = call(build(tmp_path), "ff_how_am_i_doing")
+    assert result["scored"] is False
+    assert result["weeks_scored"] == []
+    assert result["sources"] == []
+    assert result["note"]
+
+
+def test_the_score_never_claims_a_winner_it_cannot_support(tmp_path: Path) -> None:
+    """Two sources, one week, a dozen players. The honest answer is "not enough yet"."""
+    deps = build(tmp_path)
+    call(deps, "ff_recommend_lineup")  # writes a snapshot and a recommendation
+
+    snapshot = deps.store.latest_snapshot(FIXTURE_WEEK, "lineup")
+    assert snapshot is not None
+    for player_id in snapshot["projections"]:
+        deps.store.record_outcome(FIXTURE_WEEK, player_id, 11.0)
+
+    result = call(deps, "ff_how_am_i_doing")
+    assert result["scored"] is True
+    assert result["weeks_scored"] == [FIXTURE_WEEK]
+    assert result["sources"], "per-source scores must survive the snapshot round trip"
+    for verdict in result["ensemble_versus_each_source"]:
+        assert "Too few weeks" in verdict, verdict
+
+
+def test_the_lineup_grade_compares_against_the_obvious_lineup_not_perfection(
+    tmp_path: Path,
+) -> None:
+    deps = build(tmp_path)
+    call(deps, "ff_recommend_lineup")
+    snapshot = deps.store.latest_snapshot(FIXTURE_WEEK, "lineup")
+    assert snapshot is not None
+    for index, player_id in enumerate(snapshot["projections"]):
+        deps.store.record_outcome(FIXTURE_WEEK, player_id, float(index))
+
+    result = call(deps, "ff_how_am_i_doing")
+    assert result["weeks_with_a_lineup_graded"] == 1
+    graded = result["lineups"][0]
+    assert graded["points_if_you_started_the_highest_projections"] is not None
+    assert graded["points_left_on_the_bench"] >= 0

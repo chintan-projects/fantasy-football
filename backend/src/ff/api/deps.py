@@ -11,8 +11,9 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
-from ff.adapters.base import LeagueReader, ProjectionSource
+from ff.adapters.base import ActualsSource, LeagueReader, ProjectionSource
 from ff.adapters.espn import EspnProjections
+from ff.adapters.nflverse import NflverseActuals
 from ff.adapters.sleeper import SleeperClient, SleeperProjections
 from ff.adapters.store import Store
 from ff.adapters.yahoo.auth import TokenStore, YahooAuth
@@ -29,6 +30,9 @@ class Deps:
     store: Store
     sleeper: SleeperClient
     config: Settings
+    actuals: ActualsSource | None = None
+    """What players actually scored. Optional because every decision this app makes works
+    without it -- it only answers whether those decisions were any good."""
 
     @property
     def my_team_key(self) -> str:
@@ -76,6 +80,7 @@ def build_deps(config: Settings | None = None) -> Deps:
         store=Store(cfg.database_path),
         sleeper=SleeperClient(cache),
         config=cfg,
+        actuals=NflverseActuals(season, cache),
     )
 
 

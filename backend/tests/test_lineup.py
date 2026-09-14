@@ -65,7 +65,9 @@ def make(pid: str, pos: Position, mean: float, sd: float = 5.0) -> Candidate:
     )
     return Candidate(
         player=player,
-        projection=Projection(PlayerId(pid), mean, sd * 0.3, sd, sources=("a", "b")),
+        projection=Projection(
+            PlayerId(pid), mean, sd * 0.3, sd, per_source=(("a", mean), ("b", mean))
+        ),
     )
 
 

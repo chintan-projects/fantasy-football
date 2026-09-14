@@ -31,7 +31,7 @@ make auth           # authorize with Yahoo
 make leagues        # find your league and team keys, put them in .env
 make probe          # does Yahoo actually allow writes? (see below)
 make test
-make mcp-demo       # run all nine tools against fixtures, no network, no Yahoo needed
+make mcp-demo       # run all ten tools against fixtures, no network, no Yahoo needed
 make mcp            # serve the MCP server locally on :8000/mcp
 ```
 

@@ -58,7 +58,8 @@ def build_deps(db: Path) -> Deps:
 
 def main() -> int:
     with tempfile.TemporaryDirectory() as tmp:
-        server = build_server(build_deps(Path(tmp) / "demo.db"))
+        deps = build_deps(Path(tmp) / "demo.db")
+        server = build_server(deps)
 
         print(RULE)
         print("TOOLS, AS CLAUDE SEES THEM")
@@ -92,6 +93,16 @@ def main() -> int:
         show("ff_league_transactions", {"limit": 5})
         show("ff_record_preference", {"text": "Never drop Bijan.", "kind": "do_not_drop"})
         show("ff_list_preferences")
+
+        # Calibration, twice: once cold, then with a week of outcomes recorded, because
+        # the interesting property is that the cold answer refuses to claim a record and
+        # the warm one refuses to claim a winner it cannot support.
+        show("ff_how_am_i_doing")
+        snapshot = deps.store.latest_snapshot(FIXTURE_WEEK, "lineup")
+        if snapshot:
+            for index, player_id in enumerate(snapshot["projections"]):
+                deps.store.record_outcome(FIXTURE_WEEK, player_id, 6.0 + (index % 17))
+            show("ff_how_am_i_doing")
 
         targets = board.get("targets") or []
         if not targets:

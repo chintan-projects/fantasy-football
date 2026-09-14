@@ -9,6 +9,8 @@ one. Two jobs matter:
   pool and there is nothing left to have been right or wrong about.
 * **Sunday 09:00 Pacific.** Snapshot the lineup inputs while they are still actionable.
   An hour later the early games have started and half the roster is locked.
+* **Tuesday 06:00 Pacific.** Ingest what everyone actually scored. After Monday Night
+  Football, so the week is final, and before the Tuesday evening waiver snapshot.
 
 Neither job notifies anybody and neither writes to Yahoo. What they do is capture the
 inputs at the moment the decision was live, which is the only way M6 can ever score a
@@ -29,6 +31,7 @@ from zoneinfo import ZoneInfo
 
 from ff.api.deps import Deps
 from ff.core.logging import get_logger
+from ff.services import calibration
 from ff.services import waivers as waiver_service
 from ff.services.recommend import recommend
 from ff.services.week import load_week, to_week_inputs
@@ -40,6 +43,7 @@ PACIFIC = ZoneInfo("US/Pacific")
 #: (weekday, hour) in Pacific. Monday is 0, so 1 is Tuesday and 6 is Sunday.
 WAIVER_JOB = (1, 20)
 LINEUP_JOB = (6, 9)
+ACTUALS_JOB = (1, 6)
 
 
 def next_run(weekday: int, hour: int, now: datetime) -> datetime:
@@ -70,7 +74,13 @@ def snapshot_lineup(deps: Deps) -> str:
         "lineup",
         {
             "win_probability": result.lineup.win_probability,
-            "starters": [(str(pid), slot.value) for pid, slot in result.lineup.assignments],
+            # Same shape the ff_recommend_lineup tool persists. Two shapes for one thing
+            # meant calibration could only grade half the recommendations, and the half it
+            # could not grade simply did not appear in the report.
+            "starters": [
+                {"slot": slot.value, "player_id": str(pid)}
+                for pid, slot in result.lineup.assignments
+            ],
         },
         " ".join(result.caveats),
         snapshot_id=snapshot_id,
@@ -103,6 +113,27 @@ def snapshot_waivers(deps: Deps) -> str:
     )
 
 
+def ingest_actuals(deps: Deps) -> int:
+    """Record what the players we projected actually scored. Returns the rows written.
+
+    Both the current week and the one before it, because the NFL week rolls over somewhere
+    around Tuesday and which side of it a 6am job lands on is not worth depending on.
+    ``ingest`` upserts, so the redundant pass costs one fetch from a cached file and
+    protects against the off-by-one that would otherwise lose a week permanently.
+
+    Does nothing when no actuals source is configured, which is the case in tests.
+    """
+    if deps.actuals is None:
+        log.info("actuals_ingest_skipped", reason="no actuals source configured")
+        return 0
+    week = deps.sleeper.current_week()
+    written = 0
+    for target in (week - 1, week):
+        if target >= 1:
+            written += calibration.ingest(deps.store, deps.actuals, target)
+    return written
+
+
 async def _run_weekly(
     name: str,
     weekday: int,
@@ -129,6 +160,7 @@ def start(deps: Deps) -> list[asyncio.Task[None]]:
     jobs = (
         ("waivers", WAIVER_JOB, lambda: snapshot_waivers(deps)),
         ("lineup", LINEUP_JOB, lambda: snapshot_lineup(deps)),
+        ("actuals", ACTUALS_JOB, lambda: ingest_actuals(deps)),
     )
     return [
         asyncio.create_task(_run_weekly(name, weekday, hour, job))

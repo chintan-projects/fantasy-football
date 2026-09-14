@@ -281,6 +281,15 @@ class Store:
                 (week, player_id, actual_points, time.time()),
             )
 
+    def weeks_with_snapshots(self, kind: str = "lineup") -> list[int]:
+        """Every week we have inputs for, oldest first. The domain of any calibration."""
+        with self._conn() as conn:
+            rows = conn.execute(
+                "SELECT DISTINCT week FROM snapshots WHERE kind = ? ORDER BY week",
+                (kind,),
+            ).fetchall()
+        return [int(r["week"]) for r in rows]
+
     def outcomes_for_week(self, week: int) -> dict[str, float]:
         with self._conn() as conn:
             rows = conn.execute(

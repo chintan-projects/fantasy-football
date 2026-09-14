@@ -5,6 +5,26 @@ Format: date · decision · why · what would change our mind.
 
 ---
 
+## 2026-09-13 · Calibration reports an error bar, and refuses to rank sources without one
+
+`ff_how_am_i_doing` compares projection sources with a paired test and prints "too close to
+call" until a gap clears two standard errors over at least 30 forecasts. The obvious
+alternative — a table of MAE per source, sorted — was rejected. Weekly projection error is
+around 5 points, sources typically sit within a fraction of a point of each other, and a
+sorted table invites reading a ranking into noise. The whole purpose of the feature is to
+tell the owner what to trust; a report that manufactures confidence defeats it.
+
+Lineup quality is scored against the highest-projection lineup rather than the
+hindsight-perfect one. Perfect is unreachable, so scoring against it would report a loss
+every week no matter how good the decision was. The highest-projection lineup is the
+decision the owner would have made unaided, which is the thing this app has to beat.
+
+**Changes our mind:** a season of data where the sources separate cleanly and the threshold
+is just delaying a true finding — or the opposite, a gap that clears two sigma and then
+reverses, which would mean the pairing is not removing as much shared noise as assumed.
+
+---
+
 ## 2026-09-13 · The front door is an MCP server, not a web app
 
 The PRD's first-listed failure mode is "I stop opening it." A web app on a Sunday morning

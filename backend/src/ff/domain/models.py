@@ -85,7 +85,19 @@ class Projection:
     epistemic_sd: float
     aleatoric_sd: float
     p_zero: float = 0.0
-    sources: tuple[str, ...] = ()
+    per_source: tuple[tuple[str, float], ...] = ()
+    """What each source actually said, sorted by name.
+
+    The ensemble mean is the only number the recommendation uses, but it is not the only
+    number worth keeping: CLAUDE.md 2.5 asks for MAE *per source*, and once these are
+    averaged away that question can never be answered for this week. They are carried
+    here rather than recomputed later because by next week every source has changed its
+    mind, and a source cannot be graded on a forecast it no longer admits to making.
+    """
+
+    @property
+    def sources(self) -> tuple[str, ...]:
+        return tuple(name for name, _ in self.per_source)
 
     @property
     def total_sd(self) -> float:

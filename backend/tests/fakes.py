@@ -143,5 +143,5 @@ def flat_projection(
         mean=mean,
         epistemic_sd=1.0,
         aleatoric_sd=max(1.0, mean * 0.4),
-        sources=sources,
+        per_source=tuple((name, mean) for name in sources),
     )

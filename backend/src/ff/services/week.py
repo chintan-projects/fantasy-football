@@ -62,7 +62,17 @@ class WeekBundle:
             "week": self.week,
             "league_key": str(self.settings.league_key),
             "roster": [
-                {"id": str(p.id), "name": p.name, "position": p.position.value, "team": p.team}
+                {
+                    "id": str(p.id),
+                    "name": p.name,
+                    "position": p.position.value,
+                    "team": p.team,
+                    # Eligibility, because hindsight scoring has to rebuild the lineup that
+                    # was legal at the time. Slot rules are a league setting and they can be
+                    # edited mid-season, so re-deriving them later would grade the decision
+                    # against rules that were not in force when it was made.
+                    "slots": sorted(s.value for s in p.eligible_slots),
+                }
                 for p in self.roster.players
             ],
             "projections": {
@@ -71,6 +81,7 @@ class WeekBundle:
                     "epistemic_sd": proj.epistemic_sd,
                     "aleatoric_sd": proj.aleatoric_sd,
                     "sources": list(proj.sources),
+                    "per_source": dict(proj.per_source),
                 }
                 for pid, proj in self.projections.items()
             },

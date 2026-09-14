@@ -142,10 +142,11 @@ happen on a clock run inside the same process.
 
 | When (Pacific) | Job             | What it does                                                             |
 | -------------- | --------------- | ------------------------------------------------------------------------ |
+| Tuesday 06:00  | actuals ingest  | What everyone scored last week, from nflverse. After Monday night       |
 | Tuesday 20:00  | waiver snapshot | Board plus opponent model, captured **before** waivers process overnight |
 | Sunday 09:00   | lineup snapshot | Lineup inputs, captured while the roster can still be changed            |
 
-Neither notifies anyone and neither writes to Yahoo. They exist so that a recommendation
+None of them notifies anyone and none writes to Yahoo. They exist so that a recommendation
 can be scored later against the world as it was when the decision was live — grading a 9am
 decision against a 3pm world measures the wrong thing.
 

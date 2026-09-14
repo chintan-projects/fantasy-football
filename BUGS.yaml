@@ -1,5 +1,50 @@
 # Every TODO in code needs an entry here. Newest first.
 bugs:
+  - id: BUG-013
+    title: Two shapes were persisted for one recommendation, and calibration could read one
+    found: 2026-09-13
+    status: fixed
+    detail: >
+      ff_recommend_lineup stored its starters as objects with player_id and slot; the
+      Sunday scheduler stored the same thing as two-tuples. Nothing compared them, so both
+      looked correct for as long as nothing read them back.
+      Calibration reads them back. It parsed the tuple form, so every lineup the scheduler
+      recommended -- which is every lineup produced without the owner asking, the majority
+      of them -- would have been skipped. Not failed: skipped, silently, leaving a report
+      that looked complete and covered a biased subset of weeks.
+      The scheduler now writes the object form. The reader still accepts both, because
+      rows in the old shape are on disk and are perfectly gradeable; that tolerance is for
+      persisted history, not for a second live format.
+      Found by a test failing on fixture data, before any real week was lost.
+    severity: medium
+    fixed_in: >
+      backend/src/ff/api/scheduler.py, backend/src/ff/services/calibration.py, and
+      tests/test_mcp.py (test_the_lineup_grade_compares_against_the_obvious_lineup_not_perfection)
+
+  - id: BUG-012
+    title: Per-source projections were averaged away, making the headline metric impossible
+    found: 2026-09-13
+    status: fixed
+    detail: >
+      CLAUDE.md 2.5 asks for MAE per source per week and calls it the single most important
+      observability requirement in the project. It could not be computed. services/
+      projections.py built a dict of per-source means, passed it to domain.blend, and blend
+      returned a Projection carrying the ensemble mean and the source *names* only. The
+      numbers were discarded in memory, before anything was persisted.
+      The severity is in the direction of the loss: it is not recoverable later. Re-fetching
+      next week returns what the sources believe then, and a source cannot be graded on a
+      forecast it no longer admits to making. Every week that passed was a week that could
+      never be scored per source.
+      Projection now carries per_source and the week snapshot persists it. Snapshots written
+      before this change have the ensemble only, and services/calibration.py reports them as
+      unscorable per source rather than raising -- that is a fact about the data.
+      Found while building M6, by asking what the calibration code would actually read.
+    severity: high
+    fixed_in: >
+      backend/src/ff/domain/models.py, backend/src/ff/domain/blend.py,
+      backend/src/ff/services/week.py, regression test
+      test_an_old_snapshot_without_per_source_numbers_is_unscorable_per_source
+
   - id: BUG-011
     title: Claude could not connect, because the server advertised a capability it could not use
     found: 2026-09-13

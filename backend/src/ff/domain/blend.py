@@ -72,7 +72,7 @@ def blend(
         epistemic_sd=max(epistemic, 1e-6),
         aleatoric_sd=max(aleatoric, 1e-6),
         p_zero=p_zero,
-        sources=tuple(sorted(source_means)),
+        per_source=tuple(sorted(source_means.items())),
     )
 
 

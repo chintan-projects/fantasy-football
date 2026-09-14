@@ -280,6 +280,6 @@ Dockerfile · fly.toml — the deployed MCP server
 
 Commands: `make setup` `make mcp` `make mcp-demo` `make test` `make check` `make probe`
 
-`make mcp-demo` runs all nine tools against recorded fixtures and prints what Claude would
+`make mcp-demo` runs all ten tools against recorded fixtures and prints what Claude would
 see. It is the fastest way to check a change end to end, and it is how BUG-008 was found —
 every unit test passed the whole time, because each half was correct on its own.

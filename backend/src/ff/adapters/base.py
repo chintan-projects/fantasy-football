@@ -93,6 +93,20 @@ class ProjectionSource(Protocol):
     def status(self) -> SourceStatus: ...
 
 
+class ActualsSource(Protocol):
+    """What players actually scored. The other half of every calibration number.
+
+    Deliberately the same shape as ``ProjectionSource``: a forecast and an outcome are the
+    same kind of thing measured at different times, and calibration subtracts one from the
+    other. Keeping the signatures identical is what lets it do that without a translation
+    layer that could quietly mis-pair them.
+    """
+
+    name: str
+
+    def weekly(self, week: int, players: list[Player]) -> dict[PlayerId, float]: ...
+
+
 class RosterSource(Protocol):
     """Reads the league. Yahoo today; nothing else planned, so this stays minimal."""
 

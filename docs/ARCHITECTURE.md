@@ -6,9 +6,9 @@ Read `CLAUDE.md` §2 first. This document says how the principles land in code.
 
 ```
                     ┌──────────────┐
-   Claude   ───────▶│  api/mcp.py  │  nine tools, over Streamable HTTP
+   Claude   ───────▶│  api/mcp.py  │  ten tools, over Streamable HTTP
    (phone,          └──────┬───────┘  auth.py gates it to one GitHub login
-    desktop)               │          scheduler.py runs the two weekly jobs
+    desktop)               │          scheduler.py runs the three weekly jobs
                     ┌──────▼───────┐
                     │  services/   │  orchestration: fetch → compute → decide
                     └──┬────────┬──┘
@@ -168,6 +168,34 @@ Tables that matter:
 
 `snapshots` + `outcomes` are what let the app answer "were you right?" — the single most
 important observability requirement in the project (`CLAUDE.md` §2.5).
+
+## Scoring the app against reality
+
+`ff_how_am_i_doing` reports two different things, and the difference is what keeps the
+report honest.
+
+**Source accuracy** has hundreds of player-weeks behind it, so it gets an error bar. The
+comparison is paired — the same players, the same weeks, one source against the other —
+because an unpaired comparison's spread is dominated by how hard the week was rather than
+by how the sources differ. Below 30 pairs, or within two standard errors, the report says
+so and names no winner. Weekly MAE runs near 5 points against means in the low teens
+`[empirical]`, so most gaps between sources need most of a season to surface.
+
+**Lineup quality** has one number per week, so seventeen a season, and no arithmetic makes
+that a significance test. It is a record, not a p-value. The benchmark is the
+highest-projection lineup, not the hindsight-perfect one: perfect is unreachable by anyone,
+so scoring against it would report a large loss every week regardless of decision quality
+and teach the owner nothing. The highest-projection lineup is what the owner would have
+started without this app, which makes it the thing the app has to beat to be worth opening.
+
+Two consequences shaped the code rather than the report:
+
+- `blend()` used to average the sources and keep only their names. Per-source MAE was
+  therefore uncomputable, and not recoverable later — a source cannot be graded on a
+  forecast it no longer admits to making. `Projection` now carries `per_source` and the
+  snapshot persists it (BUG-012).
+- The snapshot carries slot eligibility, because hindsight has to rebuild the lineup that
+  was *legal at the time*. Slot rules are a league setting and can be edited mid-season.
 
 ## Hosting
 

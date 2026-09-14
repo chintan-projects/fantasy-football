@@ -31,6 +31,9 @@ DEFAULT_TTL_SECONDS: dict[str, int] = {
     "yahoo_transactions": 6 * 3600,
     "espn_scoreboard": 900,
     "nflverse_injuries": 6 * 3600,
+    # A finished week's points never change. The long TTL is for the current week, whose
+    # rows arrive through Monday night and are worth re-reading a few times a day.
+    "nflverse_actuals": 6 * 3600,
     "nflverse_snaps": 6 * 3600,
     "fantasypros_ecr": 6 * 3600,
     "weather": 3 * 3600,

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 
@@ -10,9 +11,11 @@ from fakes import FIXTURE_WEEK, FixtureLeague, fixture_sources
 from ff.adapters.store import Store
 from ff.api.deps import Deps
 from ff.api.scheduler import (
+    ACTUALS_JOB,
     LINEUP_JOB,
     PACIFIC,
     WAIVER_JOB,
+    ingest_actuals,
     next_run,
     snapshot_lineup,
     snapshot_waivers,
@@ -92,3 +95,50 @@ def test_neither_job_writes_to_yahoo(tmp_path: Path) -> None:
     league = deps.yahoo
     assert isinstance(league, FixtureLeague)
     assert all(not call.startswith("submit") for call in league.calls)
+
+
+class FakeActuals:
+    name = "fake_actuals"
+
+    def __init__(self) -> None:
+        self.weeks: list[int] = []
+
+    def weekly(self, week: int, players: list) -> dict:  # type: ignore[type-arg]
+        self.weeks.append(week)
+        return {p.id: 12.0 for p in players}
+
+
+def test_the_actuals_job_runs_after_monday_night_and_before_waivers_clear() -> None:
+    """Tuesday morning. The week has to be final before it can be scored, and the scoring
+    has to land before the evening waiver snapshot rewrites the free agent pool."""
+    actuals_day, actuals_hour = ACTUALS_JOB
+    waiver_day, waiver_hour = WAIVER_JOB
+    assert actuals_day == waiver_day
+    assert actuals_hour < waiver_hour
+
+
+def test_the_actuals_job_covers_both_sides_of_the_week_rollover(tmp_path: Path) -> None:
+    """Which week a Tuesday 6am job belongs to is genuinely ambiguous, so it does both.
+
+    Getting this wrong loses a week of outcomes permanently -- nothing goes back later and
+    notices that week 3 was never scored.
+    """
+    deps = build(tmp_path)
+    snapshot_lineup(deps)
+    # The week before also has inputs, as it would mid-season.
+    previous = deps.store.latest_snapshot(FIXTURE_WEEK, "lineup")
+    assert previous is not None
+    deps.store.save_snapshot(FIXTURE_WEEK - 1, "lineup", previous)
+
+    actuals = FakeActuals()
+    deps = replace(deps, actuals=actuals)
+
+    written = ingest_actuals(deps)
+    assert actuals.weeks == [FIXTURE_WEEK - 1, FIXTURE_WEEK]
+    assert written > 0
+    assert deps.store.outcomes_for_week(FIXTURE_WEEK)
+    assert deps.store.outcomes_for_week(FIXTURE_WEEK - 1)
+
+
+def test_the_actuals_job_is_a_no_op_without_a_source(tmp_path: Path) -> None:
+    assert ingest_actuals(build(tmp_path)) == 0

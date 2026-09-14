@@ -39,7 +39,7 @@ milestones:
       - done: services/week.py assembles one week's inputs once for all three decisions
       - done: services/recommend.py ranks lineups by win probability, not by points
       - done: Every input set snapshotted, so a backtest is a replay and not a re-fetch
-      - done: "Too close to call" is a real output, and never a stand-in for unsimulated
+      - done: '"Too close to call" is a real output, never a stand-in for unsimulated'
 
   - id: M2
     name: Projections and blending
@@ -97,3 +97,27 @@ closed_questions:
       Yes, and it has them: projections_week2.json recorded live, five malformed fixtures,
       and 20 tests. It is now a required projection source, so the rule applies to it more
       strongly than when the question was asked.
+
+backlog:
+  - id: losing-faab-bids
+    what: Capture losing FAAB bids from the Yahoo desktop UI
+    why: >
+      KNOWN-001. The API publishes winning bids only, so the opponent model learns the
+      clearing price and nothing about the bid distribution -- credible_bidders is an
+      upper bound, which shades less and bids high. The losing bids are visible in the
+      desktop transaction detail view, so a scraper could capture them.
+    cost: A scraper against an unversioned HTML page, re-broken on every redesign. Not
+      worth starting before M6 can show the bids are actually wrong.
+
+  - id: nfl-schedule-source
+    what: An NFL schedule source, so PlayerContext can carry opponent_team
+    why: >
+      Without it only same-team correlation applies in the simulation. The margin
+      distribution comes out slightly wider than reality, which pulls win probability
+      toward 50% -- less decisive, not more. Stated in services/week.py. [theory]
+
+  - id: frontend
+    what: The Next.js frontend, demoted 2026-09-13
+    why: >
+      Kept, not deleted. It is not built, tested or deployed and it is not kept in step
+      with the payload shape. See frontend/README.md and docs/DECISIONS.md.

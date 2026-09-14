@@ -162,7 +162,7 @@ class NflverseInjuries:
         )
 
 
-def to_rows(frame: Any) -> list[dict[str, Any]]:
+def to_rows(frame: Any, source: str = "nflverse_injuries") -> list[dict[str, Any]]:
     """Polars frame to plain dicts. nflreadpy returns Polars, not pandas."""
     if isinstance(frame, list):
         return [dict(row) for row in frame]
@@ -172,7 +172,7 @@ def to_rows(frame: Any) -> list[dict[str, Any]]:
             result = converter(orient="records") if method == "to_dict" else converter()
             return [dict(row) for row in result]
     raise SchemaDrift(
-        "nflverse_injuries",
+        source,
         f"cannot read a {type(frame).__name__} as rows",
         required=False,
     )
@@ -237,3 +237,152 @@ def _clean(value: Any) -> str | None:
         return None
     text = str(value).strip()
     return text or None
+
+
+# ---- actuals ----------------------------------------------------------------------
+#
+# Calibration needs two numbers per player-week: what we said, and what happened. The
+# first is persisted by the snapshot jobs. This is the second.
+
+#: Columns read from ``load_player_stats``. Probed against the 2026 file on 2026-09-13.
+ACTUALS_COLUMNS = (
+    "season",
+    "week",
+    "season_type",
+    "player_display_name",
+    "position",
+    "team",
+    "fantasy_points_ppr",
+)
+
+
+class NflverseActuals:
+    """Points actually scored, per player per week.
+
+    **PPR, deliberately.** ``fantasy_points_ppr`` is the column, because ESPN's projections
+    come from ``leaguedefaults/3``, which is standard PPR. Scoring PPR projections against
+    non-PPR actuals would put a systematic bias into every calibration number and it would
+    look like forecasting error, which is the worst kind of wrong -- it would not be noisy,
+    so no amount of data would reveal it.
+
+    **No team defenses.** ``load_player_stats`` is individual players only; probing the 2026
+    week 1 file returned 1041 rows and no DEF among them. A defense therefore gets no
+    actual and is absent from the result rather than recorded as zero. `[empirical]`
+
+    **Only completed weeks.** A week in progress returns partial rows, and a partial row is
+    indistinguishable from a bad performance. ``weekly`` does not police this; the caller
+    decides which weeks are final, because only the caller knows the clock.
+    """
+
+    name = "nflverse_actuals"
+    required = False
+
+    def __init__(self, season: int, cache: FileCache, *, loader: Loader | None = None) -> None:
+        self.season = season
+        self.cache = cache
+        self._loader = loader
+        self._last_error: str | None = None
+
+    def _load(self) -> Loader:
+        if self._loader is not None:
+            return self._loader
+        try:
+            import nflreadpy
+        except ImportError as exc:  # pragma: no cover - packaging, not runtime
+            raise SourceUnavailable(
+                "nflverse_actuals",
+                "nflreadpy is not installed. Run 'make setup'.",
+                required=False,
+            ) from exc
+        return lambda seasons: nflreadpy.load_player_stats(
+            seasons=list(seasons), summary_level="week"
+        )
+
+    def _rows(self) -> list[dict[str, Any]]:
+        key = f"nflverse_actuals:{self.season}"
+        cached = self.cache.get(key, DEFAULT_TTL_SECONDS.get("nflverse_actuals", 6 * 3600))
+        if cached is not None:
+            return list(cached)
+        try:
+            frame = self._load()([self.season])
+        except SourceUnavailable:
+            raise
+        except Exception as exc:
+            raise SourceUnavailable("nflverse_actuals", str(exc), required=False) from exc
+
+        rows = to_rows(frame, "nflverse_actuals")
+        validate_actuals(rows)
+        # The frame carries 150 columns; keeping seven of them makes the cache file small
+        # enough to be worth having.
+        slim = [{c: row.get(c) for c in ACTUALS_COLUMNS} for row in rows]
+        self.cache.set(key, slim)
+        return slim
+
+    def weekly(self, week: int, players: list[Player]) -> dict[PlayerId, float]:
+        """Actual PPR points for the players given, keyed by their own ids.
+
+        Same signature as ``ProjectionSource.weekly`` on purpose: a projection and an
+        outcome are the same shape, and calibration subtracts one from the other.
+        A player with no row is absent, not zero -- a bye week and a scoreless game are
+        both real and they are not the same thing.
+        """
+        try:
+            rows = self._rows()
+        except (SourceUnavailable, SchemaDrift) as exc:
+            self._last_error = str(exc)
+            log.warning("nflverse_actuals_unavailable", detail=str(exc))
+            raise
+
+        index = index_actuals(rows, self.season, week)
+        out: dict[PlayerId, float] = {}
+        for player in players:
+            points = index.get(match_key(player.name, player.position, player.team))
+            if points is not None:
+                out[player.id] = points
+        self._last_error = None
+        log.info("nflverse_actuals", week=week, asked=len(players), matched=len(out))
+        return out
+
+    def status(self) -> SourceStatus:
+        return SourceStatus(
+            name=self.name,
+            ok=self._last_error is None,
+            required=self.required,
+            age_seconds=self.cache.age_seconds(f"nflverse_actuals:{self.season}"),
+            detail=self._last_error,
+        )
+
+
+def validate_actuals(rows: list[dict[str, Any]]) -> None:
+    if not rows:
+        return
+    missing = [column for column in ACTUALS_COLUMNS if column not in rows[0]]
+    if missing:
+        raise SchemaDrift(
+            "nflverse_actuals",
+            f"missing columns: {', '.join(missing)}",
+            required=False,
+        )
+
+
+def index_actuals(rows: list[dict[str, Any]], season: int, week: int) -> dict[str, float]:
+    """Regular-season rows for one week, keyed the way every other source is keyed.
+
+    Postseason rows are dropped. Fantasy weeks and NFL playoff weeks both number from 1,
+    so keeping them would silently overwrite week 1 with a January game.
+    """
+    out: dict[str, float] = {}
+    for row in rows:
+        if str(row.get("season_type", "REG")).upper() != "REG":
+            continue
+        if int(row.get("season", -1)) != season or int(row.get("week", -1)) != week:
+            continue
+        position = parse_position(row.get("position"))
+        if position is None:
+            continue  # linemen and defenders, who are most of the file
+        name = row.get("player_display_name")
+        points = row.get("fantasy_points_ppr")
+        if not name or points is None:
+            continue
+        out[match_key(str(name), position, canonical_team(row.get("team")))] = float(points)
+    return out

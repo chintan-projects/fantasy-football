@@ -20,20 +20,27 @@ milestones:
 
   - id: M6
     name: Calibration
-    status: not_started
+    status: in_progress
     notes: >
-      The part that makes the rest trustworthy. Snapshots and recommendations are already
-      being persisted by the tools and the weekly jobs, so the inputs exist. What is
-      missing is the scoring: MAE per source per week, hit rate against the lineup that
-      was already set, and a simulated season record.
+      Built: the nflverse actuals adapter, domain/calibration.py (paired MAE per source
+      with a significance test, lineup hindsight against the highest-projection lineup),
+      services/calibration.py, the ff_how_am_i_doing tool, and a Tuesday 06:00 ingest job.
+      Two defects came out of it -- BUG-012, per-source projections were being averaged
+      away so the headline metric was uncomputable, and BUG-013, two persisted shapes for
+      one recommendation.
+      Not built: a backtest that replays stored snapshots, and hit rate on individual
+      start/sit calls (contested_slots is returned to the owner but not persisted, so the
+      pairs cannot be recovered).
 
 in_progress: []
 
 next:
-  - Deploy to Fly and connect it as a custom connector. docs/DEPLOY.md is written; nothing
-    has been deployed. The GitHub OAuth app does not exist yet.
+  - Persist contested_slots with each lineup recommendation, so the per-decision hit rate
+    becomes computable. Same class of loss as BUG-012 -- not recoverable after the fact.
   - Re-record tests/fixtures/yahoo/ against the live league once Yahoo approves access.
     Every Yahoo fixture is hand-built from documented shapes today.
+  - Fix BUG-001, two mypy errors in adapters/yahoo/executors.py. Now live code rather
+    than dormant code, since the write path is deployed.
 
 open_questions:
   - id: yahoo-api-access
@@ -41,34 +48,14 @@ open_questions:
     status: blocked, acknowledged 2026-09-13, quoted 1-2 weeks
     impact: >
       OAuth works end to end and the token stores cleanly; every Fantasy endpoint then
-      answers 401 oauth_problem="additional_authorization_required". So the parsers are
-      untested against real payloads and M5 cannot start. See BUG-004 for the scope fix
-      that was needed to get this far.
+      answers 401 oauth_problem="additional_authorization_required". Re-confirmed
+      2026-09-13. So the parsers are untested against real payloads, M5 cannot start, and
+      the weekly snapshot jobs have nothing to snapshot -- which means calibration has
+      nothing to score until this clears, however finished the calibration code is. See
+      BUG-004 for the scope fix that was needed to get this far.
     next_step: >
       Confirm Fantasy Sports is ticked under API Permissions at developer.yahoo.com/apps
       -- an unticked permission gives the identical error and is a 30-second fix. Then
       wait, re-run make leagues, and re-record the fixtures.
 
-backlog:
-  - id: losing-faab-bids
-    what: Capture losing FAAB bids from the Yahoo desktop UI
-    why: >
-      KNOWN-001. The API publishes winning bids only, so the opponent model learns the
-      clearing price and nothing about the bid distribution -- credible_bidders is an
-      upper bound, which shades less and bids high. The losing bids are visible in the
-      desktop transaction detail view, so a scraper could capture them.
-    cost: A scraper against an unversioned HTML page, re-broken on every redesign. Not
-      worth starting before M6 can show the bids are actually wrong.
-
-  - id: nfl-schedule-source
-    what: An NFL schedule source, so PlayerContext can carry opponent_team
-    why: >
-      Without it only same-team correlation applies in the simulation. The margin
-      distribution comes out slightly wider than reality, which pulls win probability
-      toward 50% -- less decisive, not more. Stated in services/week.py. [theory]
-
-  - id: frontend
-    what: The Next.js frontend, demoted 2026-09-13
-    why: >
-      Kept, not deleted. It is not built, tested or deployed and it is not kept in step
-      with the payload shape. See frontend/README.md and docs/DECISIONS.md.
+# Backlog lives in PROGRESS-archive.yaml. This file is active work and blockers only.

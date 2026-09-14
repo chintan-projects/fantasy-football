@@ -42,6 +42,7 @@ from ff.api.deps import Deps, default_deps
 from ff.core.errors import FFError
 from ff.core.logging import get_logger
 from ff.domain.models import Position
+from ff.services import calibration
 from ff.services import waivers as waiver_service
 from ff.services.approvals import ApprovalStore, executor_for, submit_claim
 from ff.services.recommend import recommend
@@ -403,6 +404,75 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
             ]
         }
 
+    # ---- was it right ------------------------------------------------------------
+
+    @mcp.tool(
+        name="ff_how_am_i_doing",
+        title="Score the advice against what happened",
+        annotations=_read_only(),
+        description=(
+            "Score this app's own advice against what actually happened: how accurate each "
+            "projection source has been, and whether the recommended lineups beat simply "
+            "starting the highest projections.\n\n"
+            "Call this whenever the owner asks whether any of this is working, whether to "
+            "trust a recommendation, or which source is better. Report the verdict strings "
+            "as written -- they already say when a gap is too small to mean anything, and "
+            "a difference in MAE that the verdict calls unseparated is noise, not a "
+            "ranking. [empirical] Weekly projection error is around 5 points against means "
+            "in the low teens, so most source gaps need most of a season to show up.\n\n"
+            "An empty report is the normal state early in a season, not a failure."
+        ),
+    )
+    def ff_how_am_i_doing(
+        week: Annotated[
+            int | None,
+            Field(description="Score one week. Omit for the pooled season, which is stronger."),
+        ] = None,
+    ) -> dict[str, Any]:
+        if week is not None:
+            report = calibration.week_report(d.store, week)
+            if report is None:
+                return {
+                    "week": week,
+                    "scored": False,
+                    "note": (
+                        f"No inputs were recorded for week {week}, so there is nothing to "
+                        f"score. Weeks are only scorable if the app was running and took a "
+                        f"snapshot before the games."
+                    ),
+                }
+            return {
+                "week": week,
+                "scored": bool(report.sources or report.lineup),
+                "note": report.note,
+                "sources": [_source_score(s) for s in report.sources],
+                "ensemble": _source_score(report.ensemble) if report.ensemble else None,
+                "ensemble_versus_each_source": [c.verdict for c in report.versus_ensemble],
+                "lineup": _lineup_score(report.lineup),
+            }
+
+        season = calibration.season_report(d.store)
+        lineups = season.lineups
+        return {
+            "weeks_scored": season.weeks_scored,
+            "scored": bool(season.weeks_scored),
+            "note": season.note,
+            "sources": [_source_score(s) for s in season.sources],
+            "ensemble": _source_score(season.ensemble) if season.ensemble else None,
+            "ensemble_versus_each_source": [c.verdict for c in season.versus_ensemble],
+            "lineups": [_lineup_score(ls) for ls in lineups],
+            "weeks_ahead_of_the_obvious_lineup": season.weeks_ahead_of_baseline,
+            "weeks_with_a_lineup_graded": len(lineups),
+            "caveats": [
+                "The lineup benchmark is the highest-projection lineup, which is what you "
+                "would have started without this app -- not the hindsight-perfect lineup, "
+                "which nobody can reach.",
+                "Start/sit optimization is worth roughly 1-3 win-probability points a week. "
+                "[empirical] Over a handful of weeks that is invisible under the noise, so "
+                "a losing record here early is not evidence the math is wrong.",
+            ],
+        }
+
     # ---- the two-step write ------------------------------------------------------
 
     @mcp.tool(
@@ -624,3 +694,29 @@ def _attach_scheduler(app: Any, deps: Deps) -> None:
                 task.cancel()
 
     app.router.lifespan_context = lifespan
+
+
+def _source_score(score: Any) -> dict[str, Any]:
+    """One forecaster's record, rounded to the precision the numbers actually support."""
+    return {
+        "source": score.source,
+        "forecasts_scored": score.n,
+        "mean_absolute_error": round(score.mae, 2),
+        "bias": round(score.bias, 2),
+        "bias_reading": (
+            "runs hot" if score.bias > 0.5 else "runs cold" if score.bias < -0.5 else "unbiased"
+        ),
+    }
+
+
+def _lineup_score(score: Any) -> dict[str, Any] | None:
+    if score is None:
+        return None
+    return {
+        "week": score.week,
+        "points_scored": round(score.recommended, 2),
+        "points_if_you_started_the_highest_projections": round(score.baseline, 2),
+        "edge": round(score.edge, 2),
+        "points_left_on_the_bench": round(score.left_on_bench, 2),
+        "starters_with_no_recorded_score": score.missing_players,
+    }
