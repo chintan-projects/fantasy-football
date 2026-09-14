@@ -18,6 +18,10 @@ dependencies = [
   "nflreadpy>=0.1.5",
   "polars>=1.44.2",
   "fastmcp==4.0.3",
+  # The OAuth client registrations FastMCP keeps for Claude. Its default store is a dict
+  # in the process, so every deploy and every `fly secrets set` wiped them and Claude
+  # answered "the connection to this connector was invalidated". See api/auth.py.
+  "py-key-value-aio[disk]>=0.2",
 ]
 
 [project.optional-dependencies]

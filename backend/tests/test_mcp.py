@@ -574,3 +574,18 @@ def test_the_scheduler_and_the_tool_persist_the_same_recommendation_shape(
     from_job = stored[0].payload
     assert set(from_job) == set(from_tool) - {"recommendation_id"}
     assert set(from_job["contested_slots"][0]) == set(from_tool["contested_slots"][0])
+
+
+def test_oauth_registrations_are_stored_somewhere_that_survives_a_restart(
+    tmp_path: Path,
+) -> None:
+    """FastMCP's default client store is a dict in the process. With CIMD off Claude
+    identifies itself by dynamically registering, so losing that dict tells Claude the
+    connector was invalidated -- which happened on every deploy until this was fixed."""
+    from ff.api.auth import _client_storage
+
+    config = Settings(database_path=str(tmp_path / "data" / "ff.db"))
+    store = _client_storage(config)
+
+    assert store is not None
+    assert (tmp_path / "data" / "oauth").is_dir()

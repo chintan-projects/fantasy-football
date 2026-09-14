@@ -47,13 +47,15 @@ milestones:
       hardcoded game id that cannot be obtained without the API access we are waiting on,
       so the app could not be configured at all; BUG-014, the assisted deep link was dead
       under the recommended configuration, and that link is the shipping product.
+      BUG-017 came out of the same session: the OAuth client registrations lived in
+      process memory, so every deploy invalidated the connector.
 
 in_progress: []
 
 next:
-  - Set FF_YAHOO_LEAGUE_KEY and FF_YAHOO_TEAM_KEY on Fly to the real numbers. Both
-    secrets exist and both hold the empty string, which is why the deployed tools answer
-    "is not set". The numbers are in the team page URL; no API access needed. BUG-016.
+  - Add FF_YAHOO_LEAGUE_KEY=1340676 and FF_YAHOO_TEAM_KEY=12 to the local .env. They are
+    set on Fly and health reports configured true; the laptop still needs them for
+    make leagues and make probe.
   - Re-record tests/fixtures/yahoo/ against the live league once Yahoo approves access.
     Every Yahoo fixture is hand-built from documented shapes today.
   - Fix BUG-001, two mypy errors in adapters/yahoo/executors.py. Now live code rather

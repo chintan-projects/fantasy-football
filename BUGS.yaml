@@ -1,5 +1,25 @@
 # Every TODO in code needs an entry here. Newest first.
 bugs:
+  - id: BUG-017
+    title: Every deploy logged Claude out of the connector
+    found: 2026-09-14
+    status: fixed
+    detail: >
+      CIMD is off (see api/auth.py), so Claude identifies itself to this server by
+      dynamically registering. FastMCP keeps those registrations in a dict in the process
+      by default, which means the dict is the connection: restarting the machine told
+      Claude "the connection to this connector was invalidated" and the owner had to
+      reconnect by hand. Every deploy, every `fly secrets set`. Observed while setting the
+      league keys.
+      The registrations now live in a DiskStore beside the database on the Fly volume, the
+      only thing here that survives a restart. On a filesystem error it falls back to
+      in-memory rather than refusing to start -- a server that will not boot is worse than
+      one that needs reconnecting, and in-memory is what it did all along.
+    severity: medium
+    fixed_in: >
+      backend/src/ff/api/auth.py, backend/pyproject.toml, and tests/test_mcp.py
+      (test_oauth_registrations_are_stored_somewhere_that_survives_a_restart)
+
   - id: BUG-016
     title: Health reported ok while two required settings were empty
     found: 2026-09-14

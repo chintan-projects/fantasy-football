@@ -21,6 +21,7 @@ refused at the first tool call. Without it, publishing the URL would publish the
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from fastmcp.server.auth.providers.github import GitHubProvider
@@ -70,6 +71,30 @@ class OnlyTheOwner(Middleware):
         return await call_next(context)
 
 
+def _client_storage(config: Settings) -> Any:
+    """Where the OAuth client registrations live.
+
+    FastMCP defaults to a dict in the process. With CIMD off Claude identifies itself by
+    dynamically registering, so that dict *is* the connection: restart the process and
+    Claude is told the connector was invalidated and the owner has to reconnect by hand.
+    Which happens on every deploy and every ``fly secrets set``. Observed 2026-09-14.
+
+    So it goes next to the database, on the Fly volume, which is the only thing here that
+    survives a restart. Falling back to in-memory on failure is deliberate -- a server
+    that will not start is worse than one that needs reconnecting, and the fallback is
+    the behaviour we had all along.
+    """
+    from key_value.aio.stores.disk import DiskStore
+
+    directory = Path(config.database_path).parent / "oauth"
+    try:
+        directory.mkdir(parents=True, exist_ok=True)
+        return DiskStore(directory=str(directory))
+    except OSError as exc:
+        log.warning("oauth_storage_in_memory", reason=str(exc), path=str(directory))
+        return None
+
+
 def github_auth(config: Settings) -> GitHubProvider:
     """The OAuth provider, or a clear error saying exactly what is missing."""
     missing = [
@@ -106,4 +131,5 @@ def github_auth(config: Settings) -> GitHubProvider:
         # browser user agent: that is defeating bot protection to paper over a dependency
         # this server does not need in the first place.
         enable_cimd=False,
+        client_storage=_client_storage(config),
     )
