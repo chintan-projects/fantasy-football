@@ -91,4 +91,19 @@ def github_auth(config: Settings) -> GitHubProvider:
         client_id=config.github_client_id,
         client_secret=config.github_client_secret,
         base_url=config.mcp_base_url,
+        # CIMD off, so Claude registers dynamically instead. [empirical]
+        #
+        # With CIMD on, the server advertises client_id_metadata_document_supported and
+        # Claude then identifies itself by URL rather than by registering. That obliges
+        # THIS server to fetch https://claude.ai/oauth/mcp-oauth-client-metadata on every
+        # authorization, and Cloudflare answers a datacenter IP with a 403 bot challenge:
+        # verified 2026-09-13 from inside the Fly machine, which got "Just a moment..."
+        # while the identical request from a laptop got clean JSON.
+        #
+        # Dynamic client registration inverts the direction -- Claude posts to /register
+        # and nothing outbound is needed -- so the whole failure mode disappears rather
+        # than being worked around. Claude supports both. Do not "fix" this by spoofing a
+        # browser user agent: that is defeating bot protection to paper over a dependency
+        # this server does not need in the first place.
+        enable_cimd=False,
     )

@@ -120,6 +120,19 @@ at the first tool call.
 
 The connector works on web, Desktop, Cowork and mobile, on all plans. `[empirical]`
 
+**If it ends at "Client Not Registered".** The server is advertising
+`client_id_metadata_document_supported` again. That makes Claude identify itself with a URL
+instead of registering, which forces this server to fetch
+`https://claude.ai/oauth/mcp-oauth-client-metadata` — and from a Fly datacenter IP that
+returns Cloudflare's bot challenge, not JSON. `enable_cimd=False` in
+`backend/src/ff/api/auth.py` is what keeps it off. Check with:
+
+```bash
+curl -s https://ff-copilot.fly.dev/.well-known/oauth-authorization-server | grep -c client_id_metadata
+```
+
+Zero is correct. Do not fix this by sending a browser user agent.
+
 ---
 
 ## What runs on its own

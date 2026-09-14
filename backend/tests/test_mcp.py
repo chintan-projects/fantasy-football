@@ -358,3 +358,42 @@ def test_the_mcp_endpoint_is_mounted_where_claude_expects_it(tmp_path: Path) -> 
             return await client.get("/mcp")
 
     assert asyncio.run(go()).status_code != 404
+
+
+def test_the_server_never_asks_claude_for_a_metadata_document(tmp_path: Path) -> None:
+    """BUG-011. The discovery document must not advertise CIMD support.
+
+    When it does, Claude identifies itself with a client id that is a URL and this server
+    has to go fetch that URL before it can recognise the client. Cloudflare answers a
+    datacenter IP with a bot challenge, so on Fly the fetch returns 403 HTML, the client
+    is not found, and every connection attempt ends at "Client Not Registered". The same
+    fetch from a laptop succeeds, which is why this survived local testing.
+
+    Dynamic client registration needs no outbound call at all. Asserting the absence of
+    the advertisement is the honest test: the bug was a capability we claimed and could
+    not deliver from where we actually run.
+    """
+    import httpx
+
+    deps = build(
+        tmp_path,
+        github_client_id="test-client-id",
+        github_client_secret="test-client-secret",
+        allowed_github_login="somebody",
+        mcp_base_url="https://ff-copilot.test",
+    )
+    app = http_app(deps, authenticate=True)
+
+    async def go() -> httpx.Response:
+        transport = httpx.ASGITransport(app=app)
+        async with (
+            app.router.lifespan_context(app),
+            httpx.AsyncClient(transport=transport, base_url="http://t") as client,
+        ):
+            return await client.get("/.well-known/oauth-authorization-server")
+
+    response = asyncio.run(go())
+    assert response.status_code == 200
+    metadata = response.json()
+    assert "client_id_metadata_document_supported" not in metadata, metadata
+    assert metadata["registration_endpoint"], "DCR is the fallback; it has to be offered"

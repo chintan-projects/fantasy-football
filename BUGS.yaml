@@ -1,5 +1,31 @@
 # Every TODO in code needs an entry here. Newest first.
 bugs:
+  - id: BUG-011
+    title: Claude could not connect, because the server advertised a capability it could not use
+    found: 2026-09-13
+    status: fixed
+    detail: >
+      Adding the custom connector ended at an error page reading "Client Not Registered:
+      the client ID https://claude.ai/oauth/mcp-oauth-client-metadata was not found in the
+      server's client registry".
+      FastMCP's GitHubProvider enables client id metadata documents by default, so the
+      discovery document advertised client_id_metadata_document_supported and Claude
+      preferred it over dynamic registration. That form identifies the client by URL, which
+      obliges this server to fetch that URL before it can recognise the client. From inside
+      the Fly machine that fetch returns 403 with an HTML bot challenge -- Cloudflare does
+      not trust a datacenter IP -- while the identical request from a laptop returns clean
+      JSON. CIMDClientManager catches the failure, logs a warning, returns None, and the
+      authorize handler renders the error page. Nothing in the logs says "blocked".
+      Fixed by passing enable_cimd=False, which drops the advertisement and lets Claude
+      register dynamically instead. Registration is inbound, so there is no outbound fetch
+      to fail and no dependency on anyone else's bot protection. The alternative -- sending
+      a browser user agent to get past the challenge -- was rejected: it defeats a
+      protection mechanism to keep a dependency this server does not need.
+    severity: high
+    fixed_in: >
+      backend/src/ff/api/auth.py, regression test
+      test_the_server_never_asks_claude_for_a_metadata_document in tests/test_mcp.py
+
   - id: BUG-010
     title: The ASGI app could not start, and no test would have caught it
     found: 2026-09-13
