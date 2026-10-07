@@ -53,6 +53,10 @@ class Settings(BaseSettings):
     #: either way; only the roster, opponent, free agents and budget change hands.
     league_source: Literal["yahoo", "manual"] = "yahoo"
 
+    #: Points per reception. Every projection source and the actuals are converted to this,
+    #: so a projection and the score it is graded against are always the same format.
+    scoring: Literal["ppr", "half_ppr", "std"] = "ppr"
+
     # Optional paid source
     fantasypros_api_key: str = ""
 

@@ -14,11 +14,11 @@ keep its shape. Verified live on 2026-09-13 -- see ``SleeperProjections``.
 from __future__ import annotations
 
 import time
-from typing import Any, Literal
+from typing import Any
 
 import httpx
 
-from ff.adapters._common import canonical_team, match_key, parse_position
+from ff.adapters._common import Scoring, canonical_team, match_key, parse_position
 from ff.core.cache import DEFAULT_TTL_SECONDS, FileCache
 from ff.core.errors import SchemaDrift, SourceUnavailable
 from ff.core.logging import get_logger
@@ -29,15 +29,14 @@ BASE = "https://api.sleeper.app/v1"
 #: The projections endpoint. Different host, no version prefix, undocumented.
 PROJECTIONS_BASE = "https://api.sleeper.com"
 
-#: Which scored total to read. A league's scoring settings decide this; until league
-#: settings are wired through (M3) the caller passes it and PPR is the default.
+#: Which scored total to read. Sleeper publishes all three, so no conversion is needed;
+#: the league's format comes from ``FF_SCORING``.
 SCORING_KEYS: dict[str, str] = {
     "std": "pts_std",
     "half_ppr": "pts_half_ppr",
     "ppr": "pts_ppr",
 }
 
-Scoring = Literal["std", "half_ppr", "ppr"]
 
 #: Ask only for what a fantasy roster can hold. The unfiltered pull returns punters and
 #: cornerbacks -- 3304 rows against 470 that carry a scored projection.

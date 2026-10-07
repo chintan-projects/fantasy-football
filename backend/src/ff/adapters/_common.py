@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from typing import Literal
 
 from ff.domain.models import Position
 
@@ -102,6 +103,24 @@ _SUFFIXES = {"jr", "sr", "ii", "iii", "iv", "v"}
 
 _NON_LETTER = re.compile(r"[^a-z ]")
 _SPACES = re.compile(r"\s+")
+
+
+Scoring = Literal["std", "half_ppr", "ppr"]
+
+#: Points per reception under each scoring format. Every other scoring rule is the same
+#: across the three, so converting between them needs nothing but the catch count.
+POINTS_PER_RECEPTION: dict[str, float] = {"ppr": 1.0, "half_ppr": 0.5, "std": 0.0}
+
+
+def from_ppr(ppr_points: float, receptions: float, scoring: Scoring) -> float:
+    """Rescore a full-PPR total.
+
+    For sources that publish PPR plus a reception count but not the other formats. Exact,
+    not an approximation: verified 2026-10-06 that ESPN's standard and PPR presets differ
+    by exactly its projected receptions, and nflverse's two point columns by exactly the
+    catches made (CeeDee Lamb, week 4: 41.3 PPR, 24.3 standard, 17 catches).
+    """
+    return ppr_points - (1.0 - POINTS_PER_RECEPTION[scoring]) * receptions
 
 
 def canonical_team(abbreviation: str | None) -> str:

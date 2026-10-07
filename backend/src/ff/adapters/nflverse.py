@@ -30,7 +30,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from ff.adapters._common import canonical_team, match_key, parse_position
+from ff.adapters._common import Scoring, canonical_team, from_ppr, match_key, parse_position
 from ff.core.cache import DEFAULT_TTL_SECONDS, FileCache
 from ff.core.errors import SchemaDrift, SourceUnavailable
 from ff.core.logging import get_logger
@@ -253,17 +253,18 @@ ACTUALS_COLUMNS = (
     "position",
     "team",
     "fantasy_points_ppr",
+    "receptions",
 )
 
 
 class NflverseActuals:
     """Points actually scored, per player per week.
 
-    **PPR, deliberately.** ``fantasy_points_ppr`` is the column, because ESPN's projections
-    come from ``leaguedefaults/3``, which is standard PPR. Scoring PPR projections against
-    non-PPR actuals would put a systematic bias into every calibration number and it would
-    look like forecasting error, which is the worst kind of wrong -- it would not be noisy,
-    so no amount of data would reveal it.
+    **Scored the way the projections are.** ``fantasy_points_ppr`` rescored to the league's
+    format with ``receptions``, using the same ``from_ppr`` the ESPN adapter uses. Scoring
+    projections in one format against actuals in another would put a systematic bias into
+    every calibration number and it would look like forecasting error, which is the worst
+    kind of wrong -- it would not be noisy, so no amount of data would reveal it.
 
     **No team defenses.** ``load_player_stats`` is individual players only; probing the 2026
     week 1 file returned 1041 rows and no DEF among them. A defense therefore gets no
@@ -277,10 +278,18 @@ class NflverseActuals:
     name = "nflverse_actuals"
     required = False
 
-    def __init__(self, season: int, cache: FileCache, *, loader: Loader | None = None) -> None:
+    def __init__(
+        self,
+        season: int,
+        cache: FileCache,
+        *,
+        loader: Loader | None = None,
+        scoring: Scoring = "ppr",
+    ) -> None:
         self.season = season
         self.cache = cache
         self._loader = loader
+        self.scoring = scoring
         self._last_error: str | None = None
 
     def _load(self) -> Loader:
@@ -299,7 +308,9 @@ class NflverseActuals:
         )
 
     def _rows(self) -> list[dict[str, Any]]:
-        key = f"nflverse_actuals:{self.season}"
+        # v2: the rows now carry receptions. A v1 file cached before that would rescore
+        # every player as if nobody caught a pass.
+        key = f"nflverse_actuals:v2:{self.season}"
         cached = self.cache.get(key, DEFAULT_TTL_SECONDS.get("nflverse_actuals", 6 * 3600))
         if cached is not None:
             return list(cached)
@@ -319,7 +330,7 @@ class NflverseActuals:
         return slim
 
     def weekly(self, week: int, players: list[Player]) -> dict[PlayerId, float]:
-        """Actual PPR points for the players given, keyed by their own ids.
+        """Actual points in the league's format for the players given, keyed by their ids.
 
         Same signature as ``ProjectionSource.weekly`` on purpose: a projection and an
         outcome are the same shape, and calibration subtracts one from the other.
@@ -333,7 +344,7 @@ class NflverseActuals:
             log.warning("nflverse_actuals_unavailable", detail=str(exc))
             raise
 
-        index = index_actuals(rows, self.season, week)
+        index = index_actuals(rows, self.season, week, self.scoring)
         out: dict[PlayerId, float] = {}
         for player in players:
             points = index.get(match_key(player.name, player.position, player.team))
@@ -348,7 +359,7 @@ class NflverseActuals:
             name=self.name,
             ok=self._last_error is None,
             required=self.required,
-            age_seconds=self.cache.age_seconds(f"nflverse_actuals:{self.season}"),
+            age_seconds=self.cache.age_seconds(f"nflverse_actuals:v2:{self.season}"),
             detail=self._last_error,
         )
 
@@ -365,7 +376,9 @@ def validate_actuals(rows: list[dict[str, Any]]) -> None:
         )
 
 
-def index_actuals(rows: list[dict[str, Any]], season: int, week: int) -> dict[str, float]:
+def index_actuals(
+    rows: list[dict[str, Any]], season: int, week: int, scoring: Scoring = "ppr"
+) -> dict[str, float]:
     """Regular-season rows for one week, keyed the way every other source is keyed.
 
     Postseason rows are dropped. Fantasy weeks and NFL playoff weeks both number from 1,
@@ -384,5 +397,7 @@ def index_actuals(rows: list[dict[str, Any]], season: int, week: int) -> dict[st
         points = row.get("fantasy_points_ppr")
         if not name or points is None:
             continue
-        out[match_key(str(name), position, canonical_team(row.get("team")))] = float(points)
+        receptions = float(row.get("receptions") or 0)
+        key = match_key(str(name), position, canonical_team(row.get("team")))
+        out[key] = from_ppr(float(points), receptions, scoring)
     return out

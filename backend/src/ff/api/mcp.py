@@ -652,6 +652,7 @@ def http_app(deps: Deps | None = None, *, authenticate: bool | None = None) -> A
                 "ok": True,
                 "authenticated": wants_auth,
                 "league_source": d.config.league_source,
+                "scoring": d.config.scoring,
                 "configured": not missing,
                 "config_missing": missing,
                 "write_executor": d.config.write_executor,

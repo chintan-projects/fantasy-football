@@ -71,8 +71,8 @@ def build_deps(config: Settings | None = None) -> Deps:
         )
 
     available: dict[str, ProjectionSource] = {
-        "espn": EspnProjections(season, cache),
-        "sleeper": SleeperProjections(season, cache),
+        "espn": EspnProjections(season, cache, scoring=cfg.scoring),
+        "sleeper": SleeperProjections(season, cache, scoring=cfg.scoring),
     }
     # Silently skipping a name with no implementation is how a two-source configuration
     # becomes a one-source one without anybody noticing. Settings counts names; only this
@@ -97,7 +97,7 @@ def build_deps(config: Settings | None = None) -> Deps:
         store=store,
         sleeper=SleeperClient(cache),
         config=cfg,
-        actuals=NflverseActuals(season, cache),
+        actuals=NflverseActuals(season, cache, scoring=cfg.scoring),
     )
 
 

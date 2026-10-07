@@ -14,7 +14,9 @@ from typing import Any
 import pytest
 
 from ff.adapters.nflverse import (
+    ACTUALS_COLUMNS,
     NflverseInjuries,
+    index_actuals,
     index_by_match_key,
     normalize_practice_status,
     to_rows,
@@ -171,3 +173,31 @@ class TestPolars:
         rows = to_rows(frame)
         assert len(rows) == len(load("injuries_2026.json"))
         assert "practice_status" in rows[0]
+
+
+LAMB_WEEK_4_ACTUAL = [
+    {
+        "season": 2026,
+        "week": 4,
+        "season_type": "REG",
+        "player_display_name": "CeeDee Lamb",
+        "position": "WR",
+        "team": "DAL",
+        # Real week 4 numbers, read 2026-10-06. nflverse's standard column said 24.3.
+        "fantasy_points_ppr": 41.3,
+        "receptions": 17,
+    }
+]
+
+
+class TestActualsScoring:
+    """Graded in the same format as the projections, or calibration is biased by design."""
+
+    def test_each_format_from_the_ppr_column(self) -> None:
+        key = "WR:ceedee lamb"
+        assert index_actuals(LAMB_WEEK_4_ACTUAL, 2026, 4)[key] == pytest.approx(41.3)
+        assert index_actuals(LAMB_WEEK_4_ACTUAL, 2026, 4, "half_ppr")[key] == pytest.approx(32.8)
+        assert index_actuals(LAMB_WEEK_4_ACTUAL, 2026, 4, "std")[key] == pytest.approx(24.3)
+
+    def test_receptions_are_a_required_column(self) -> None:
+        assert "receptions" in ACTUALS_COLUMNS

@@ -1,5 +1,19 @@
 # Every TODO in code needs an entry here. Newest first.
 bugs:
+  - id: BUG-019
+    title: Every projection and actual was full PPR, whatever the league scored
+    found: 2026-10-06
+    status: fixed
+    detail: >
+      ESPN read leaguedefaults/3, Sleeper defaulted to pts_ppr, nflverse read
+      fantasy_points_ppr. The owner's league is half-PPR, so every receiver and pass-catching
+      back was overstated by half a point per catch -- about 3.7 points for CeeDee Lamb in
+      week 5 -- which tilts FLEX calls toward receivers and inflates their waiver value.
+      Caught by Claude in the owner's project, which knew the league was half-PPR and
+      noticed the connector did not. FF_SCORING now sets the format; ESPN and nflverse are
+      converted from PPR with their own reception counts (exact, verified live), Sleeper
+      serves half-PPR directly.
+
   - id: BUG-018
     title: An opponent's unprojected starter was listed by id
     found: 2026-10-06

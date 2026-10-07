@@ -13,7 +13,9 @@ The decoder ring, verified live on 2026-09-12:
 * ``scoringPeriodId`` = the week number, and ``seasonId`` = the season. Both matter: a
   response carries last season's weeks alongside this season's, under the same week
   numbers.
-* ``appliedTotal`` is the fantasy-scored value; ``leaguedefaults/3`` is standard PPR.
+* ``appliedTotal`` is the fantasy-scored value; ``leaguedefaults/3`` is standard PPR and
+  ``leaguedefaults/1`` standard scoring. 2 and 4 return nothing. Half-PPR has no preset,
+  so it is PPR minus half of stat ``53``, projected receptions -- see ``from_ppr``.
 
 One correction to the note in docs/DATA_SOURCES.md: the ``X-Fantasy-Filter`` header is
 required, but a bare ``limit`` is now rejected with
@@ -28,7 +30,14 @@ from typing import Any
 
 import httpx
 
-from ff.adapters._common import ESPN_POSITION_BY_ID, ESPN_TEAM_BY_ID, canonical_team, match_key
+from ff.adapters._common import (
+    ESPN_POSITION_BY_ID,
+    ESPN_TEAM_BY_ID,
+    Scoring,
+    canonical_team,
+    from_ppr,
+    match_key,
+)
 from ff.core.cache import DEFAULT_TTL_SECONDS, FileCache
 from ff.core.errors import SchemaDrift, SourceUnavailable
 from ff.core.logging import get_logger
@@ -41,6 +50,10 @@ PROJECTION_SOURCE_ID = 1
 
 #: A single week, as opposed to a season total.
 WEEKLY_SPLIT_ID = 1
+
+#: ESPN's stat id for receptions, in a projection row's ``stats`` map. Verified 2026-10-06:
+#: PPR minus standard equals this value exactly for Lamb, Robinson and Gibbs.
+RECEPTIONS_STAT = "53"
 
 log = get_logger(__name__)
 
@@ -58,8 +71,10 @@ class EspnProjections:
         *,
         client: httpx.Client | None = None,
         player_limit: int = 800,
+        scoring: Scoring = "ppr",
     ) -> None:
         self.season = season
+        self.scoring = scoring
         self.cache = cache
         self.client = client or httpx.Client(timeout=30.0)
         self.player_limit = player_limit
@@ -120,7 +135,7 @@ class EspnProjections:
             log.warning("espn_unavailable", detail=str(exc))
             raise
 
-        by_key = index_by_match_key(payload, self.season, week)
+        by_key = index_by_match_key(payload, self.season, week, self.scoring)
         out: dict[PlayerId, float] = {}
         for player in players:
             value = by_key.get(match_key(player.name, player.position, player.team))
@@ -180,7 +195,9 @@ def validate(payload: Any) -> None:
     )
 
 
-def index_by_match_key(payload: Any, season: int, week: int) -> dict[str, float]:
+def index_by_match_key(
+    payload: Any, season: int, week: int, scoring: Scoring = "ppr"
+) -> dict[str, float]:
     """Flatten the response to ``match_key -> projected points`` for one week.
 
     Filtering on ``seasonId`` is not optional: the same response carries last season's
@@ -195,14 +212,14 @@ def index_by_match_key(payload: Any, season: int, week: int) -> dict[str, float]
         if position is None:
             continue
         team = canonical_team(ESPN_TEAM_BY_ID.get(int(player.get("proTeamId", -1))))
-        points = weekly_projection(player.get("stats", []), season, week)
+        points = weekly_projection(player.get("stats", []), season, week, scoring)
         if points is None:
             continue
         out[match_key(str(player.get("fullName", "")), position, team)] = points
     return out
 
 
-def weekly_projection(stats: Any, season: int, week: int) -> float | None:
+def weekly_projection(stats: Any, season: int, week: int, scoring: Scoring = "ppr") -> float | None:
     if not isinstance(stats, list):
         return None
     for row in stats:
@@ -224,5 +241,6 @@ def weekly_projection(stats: Any, season: int, week: int) -> float | None:
             # that DOES carry a stat line is a genuine forecast and is kept. (BUG-007.)
             if float(applied) == 0.0 and not row.get("stats"):
                 return None
-            return float(applied)
+            receptions = (row.get("stats") or {}).get(RECEPTIONS_STAT, 0.0)
+            return from_ppr(float(applied), float(receptions), scoring)
     return None

@@ -283,3 +283,35 @@ class TestZeroIsNotAProjection:
         payload = load("zero_means_no_projection.json")
         assert index_by_match_key(payload, 2026, 2) == {}
         assert index_by_match_key(payload, 2026, 3) != {}
+
+
+LAMB_WEEK_5_PROJECTION = [
+    {
+        "statSourceId": 1,
+        "statSplitTypeId": 1,
+        "scoringPeriodId": 5,
+        "seasonId": 2026,
+        "appliedTotal": 19.15,
+        # Live values, leaguedefaults/3, 2026-10-06. The standard preset said 11.79.
+        "stats": {"53": 7.36, "42": 75.2},
+    }
+]
+
+
+class TestScoringFormats:
+    """ESPN has PPR and standard presets and nothing for half-PPR. The league is half-PPR."""
+
+    def test_ppr_is_the_preset_as_served(self) -> None:
+        assert weekly_projection(LAMB_WEEK_5_PROJECTION, 2026, 5) == pytest.approx(19.15)
+
+    def test_standard_matches_espns_own_standard_preset(self) -> None:
+        assert weekly_projection(LAMB_WEEK_5_PROJECTION, 2026, 5, "std") == pytest.approx(11.79)
+
+    def test_half_ppr_is_half_a_point_less_per_catch(self) -> None:
+        assert weekly_projection(LAMB_WEEK_5_PROJECTION, 2026, 5, "half_ppr") == pytest.approx(
+            15.47
+        )
+
+    def test_a_player_with_no_catches_is_the_same_in_every_format(self) -> None:
+        kicker = [{**LAMB_WEEK_5_PROJECTION[0], "appliedTotal": 8.1, "stats": {"80": 1.6}}]
+        assert weekly_projection(kicker, 2026, 5, "half_ppr") == pytest.approx(8.1)

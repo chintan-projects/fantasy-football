@@ -31,6 +31,8 @@ primary_region = "sjc"   # the league is Pacific time, and so are the job schedu
   # Claude, not from Yahoo's API, which has not approved this app. Remove this line once
   # it does. See docs/MANUAL_MODE.md.
   FF_LEAGUE_SOURCE = "manual"
+  # The league is half-PPR. Projections and actuals are both converted to it.
+  FF_SCORING = "half_ppr"
 
 [mounts]
   source = "ff_data"

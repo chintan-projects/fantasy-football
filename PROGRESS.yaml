@@ -7,7 +7,7 @@ milestones:
   - id: M0-M4
     name: Setup, Yahoo read path, projections, lineup, waivers, MCP front door
     status: done
-    notes: See PROGRESS-archive.yaml. 449 tests passing; make check and make test green.
+    notes: See PROGRESS-archive.yaml. 456 tests passing; make check and make test green.
 
   - id: M5
     name: Write path
