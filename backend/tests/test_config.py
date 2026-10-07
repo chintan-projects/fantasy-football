@@ -119,7 +119,7 @@ class TestProjectionSourcesActuallyExist:
             build_deps(self.config(tmp_path, ["espn", "fantasypros"]))
 
     def test_the_error_names_what_is_available(self, tmp_path: Path) -> None:
-        with pytest.raises(ConfigError, match="espn, sleeper"):
+        with pytest.raises(ConfigError, match="espn, firecrawl, sleeper"):
             build_deps(self.config(tmp_path, ["espn", "nowhere"]))
 
     def test_the_shipped_pair_builds(self, tmp_path: Path) -> None:

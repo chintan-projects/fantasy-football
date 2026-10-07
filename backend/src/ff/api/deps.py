@@ -13,8 +13,10 @@ from pathlib import Path
 
 from ff.adapters.base import ActualsSource, LeagueReader, ProjectionSource
 from ff.adapters.espn import EspnProjections
+from ff.adapters.firecrawl import FirecrawlBoard, firecrawl_sources
 from ff.adapters.manual import ManualLeague
 from ff.adapters.nflverse import NflverseActuals
+from ff.adapters.nflverse_usage import NflverseUsage
 from ff.adapters.sleeper import SleeperClient, SleeperProjections
 from ff.adapters.store import Store
 from ff.adapters.yahoo.auth import TokenStore, YahooAuth
@@ -36,6 +38,8 @@ class Deps:
     actuals: ActualsSource | None = None
     """What players actually scored. Optional because every decision this app makes works
     without it -- it only answers whether those decisions were any good."""
+    usage: NflverseUsage | None = None
+    """How players have been used. Optional: it explains a projection, it never sets one."""
 
     @property
     def my_team_key(self) -> str:
@@ -70,9 +74,11 @@ def build_deps(config: Settings | None = None) -> Deps:
             auth, cache, league_id=cfg.yahoo_league_key, team_key=cfg.yahoo_team_key
         )
 
-    available: dict[str, ProjectionSource] = {
-        "espn": EspnProjections(season, cache, scoring=cfg.scoring),
-        "sleeper": SleeperProjections(season, cache, scoring=cfg.scoring),
+    available: dict[str, list[ProjectionSource]] = {
+        "espn": [EspnProjections(season, cache, scoring=cfg.scoring)],
+        "sleeper": [SleeperProjections(season, cache, scoring=cfg.scoring)],
+        # One name, six sources: each site on the board is graded on its own.
+        "firecrawl": list(firecrawl_sources(FirecrawlBoard(cache, scoring=cfg.scoring))),
     }
     # Silently skipping a name with no implementation is how a two-source configuration
     # becomes a one-source one without anybody noticing. Settings counts names; only this
@@ -83,7 +89,7 @@ def build_deps(config: Settings | None = None) -> Deps:
             f"FF_PROJECTION_SOURCES names {', '.join(unknown)}, which this build has no "
             f"adapter for. Available: {', '.join(sorted(available))}."
         )
-    sources = [available[name] for name in cfg.projection_sources]
+    sources = [source for name in cfg.projection_sources for source in available[name]]
     if len(sources) < 2:
         raise ConfigError(
             "At least two projection sources. A simple average beat individual sources in "
@@ -98,6 +104,7 @@ def build_deps(config: Settings | None = None) -> Deps:
         sleeper=SleeperClient(cache),
         config=cfg,
         actuals=NflverseActuals(season, cache, scoring=cfg.scoring),
+        usage=NflverseUsage(season, cache, scoring=cfg.scoring),
     )
 
 

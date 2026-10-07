@@ -21,12 +21,24 @@ from __future__ import annotations
 
 from typing import Any
 
+from ff.domain.distributions import floor_ceiling
 from ff.domain.models import Recommendation
 from ff.services.week import WeekBundle
 
 
-def lineup_plan(result: Recommendation, bundle: WeekBundle, week: int) -> dict[str, Any]:
-    """The full recommendation payload, returned to Claude and persisted verbatim."""
+def lineup_plan(
+    result: Recommendation,
+    bundle: WeekBundle,
+    week: int,
+    usage: dict[str, Any] | None = None,
+    usage_notes: list[str] | None = None,
+) -> dict[str, Any]:
+    """The full recommendation payload, returned to Claude and persisted verbatim.
+
+    ``usage`` is the usage evidence for the players in contested slots, by name -- see
+    ``rating_tools.contested_usage``. The key is always present, so the tool and the
+    scheduler persist one shape whether or not usage data was reachable.
+    """
     # The opponent too: an opponent's starter with no projection is listed by name in
     # ``unprojected``, and "4881" tells the owner nothing.
     by_id = {str(p.id): p for p in (*bundle.roster.players, *bundle.opponent_starters)}
@@ -47,6 +59,11 @@ def lineup_plan(result: Recommendation, bundle: WeekBundle, week: int) -> dict[s
                 "player": name(pid),
                 "player_id": str(pid),
                 "projection": round(bundle.projections[pid].mean, 2)
+                if pid in bundle.projections
+                else None,
+                # A bad week and a good one: the 10th and 90th percentile of the same
+                # distribution the simulation drew from.
+                "floor_ceiling": list(floor_ceiling(bundle.projections[pid]))
                 if pid in bundle.projections
                 else None,
             }
@@ -78,7 +95,8 @@ def lineup_plan(result: Recommendation, bundle: WeekBundle, week: int) -> dict[s
             for s in bundle.sources
         ],
         "unprojected": [name(pid) for pid in bundle.unprojected],
-        "caveats": list(result.caveats) + list(bundle.notes),
+        "usage": usage or {},
+        "caveats": list(result.caveats) + list(bundle.notes) + list(usage_notes or []),
     }
 
 

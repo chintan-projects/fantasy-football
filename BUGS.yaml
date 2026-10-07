@@ -1,5 +1,17 @@
 # Every TODO in code needs an entry here. Newest first.
 bugs:
+  - id: BUG-020
+    title: api/mcp.py is 744 lines, over the 600-line limit
+    found: 2026-10-06
+    status: open
+    severity: low
+    detail: >
+      It was 732 before the ratings work, which went into api/rating_tools.py to keep it
+      from growing further; wiring the usage block into the board and lineup added 12.
+      Fix by moving the browse tools (ff_my_roster, ff_league_transactions, preferences)
+      and the calibration shaping helpers into their own module, the way manual_tools and
+      rating_tools already are. No behavior change, so the existing tests are the guard.
+
   - id: BUG-019
     title: Every projection and actual was full PPR, whatever the league scored
     found: 2026-10-06

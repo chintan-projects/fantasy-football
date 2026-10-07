@@ -23,3 +23,10 @@ report and the adapter has to skip them rather than choke on them.
 | `missing_practice_status_column.json` | a column dropped upstream |
 | `renamed_full_name_column.json` | a column renamed upstream |
 | `empty.json` | an empty frame, which is the correct answer in the offseason |
+
+## Usage
+
+`usage_2026_weeks1to4.json` and `snaps_2026_weeks1to4.json`: every 2026 week 1-4 row for
+ATL, DAL and SEA from `load_player_stats(summary_level="week")` and `load_snap_counts`,
+recorded 2026-10-06 and cut to the columns `adapters/nflverse_usage.py` reads. Whole teams
+rather than single players, because a carry share needs the team's total carries.

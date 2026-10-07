@@ -325,3 +325,25 @@ fixtures). This is a third, not a new seam.
 
 **Reversible.** Remove the line from `fly.toml` once Yahoo approves. Stored inputs stay in
 `league_inputs`, which nothing in Yahoo mode reads.
+
+## 2026-10-06 — Eight forecasters, and usage as evidence rather than input
+
+**Decision.** Add the six sites on Firecrawl's fantasy board as projection sources, one
+source per site, alongside ESPN and Sleeper. Add usage from nflverse (snap, target and
+carry share) to every rated player. Add `ff_compare_players`, which returns a verdict and
+each player's evidence.
+
+**Why six sources and not one.** The blend's epistemic spread is the disagreement between
+forecasters. Averaging the six before the blend sees them would hide most of it, and
+calibration could never say which site is worth listening to. **Cost:** an equal-weight
+average now gives the six sites 6 of 8 votes. They are six independent forecasters, which
+is what the 63% ensemble result is about, so that is the right default until calibration
+says otherwise. If one site turns out worse than the rest, drop it in `adapters/firecrawl.py`.
+
+**Why usage does not move the numbers.** Steadier-than-points is a published finding, but
+nobody has measured what a rising target share is worth in projected points in this
+league, and inventing that coefficient would be the overclaiming CLAUDE.md §3 rules out.
+Usage is shown, and used as a labelled lean only inside the noise band.
+
+**Reversible.** Set `FF_PROJECTION_SOURCES=["espn","sleeper"]` to drop Firecrawl. Usage is
+optional; if nflverse is down every answer still comes back, with a note.

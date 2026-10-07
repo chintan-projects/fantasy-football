@@ -68,6 +68,9 @@ def build_projections(
     by_source: dict[str, dict[PlayerId, float]] = {}
     statuses: list[SourceStatus] = []
     notes: list[str] = []
+    # Sources that share one upstream fail together and for the same reason -- the six
+    # Firecrawl sites read one page -- so they are reported in one note, not six.
+    failed: dict[str, list[str]] = {}
 
     for source in sources:
         try:
@@ -77,11 +80,15 @@ def build_projections(
                 log.error("required_source_failed", source=source.name, detail=str(exc))
                 raise
             log.warning("optional_source_degraded", source=source.name, detail=str(exc))
-            notes.append(
-                f"{source.name} was unavailable ({exc.detail}). Its players fall back to "
-                f"the remaining sources, and some may have too few to project."
-            )
+            failed.setdefault(exc.detail, []).append(source.name)
         statuses.append(source.status())
+
+    for detail, down in failed.items():
+        were = "was" if len(down) == 1 else "were"
+        notes.append(
+            f"{', '.join(down)} {were} unavailable ({detail}). Their players fall back to "
+            f"the remaining sources, and some may have too few to project."
+        )
 
     answered = [name for name, values in by_source.items() if values]
     if len(answered) < MINIMUM_SOURCES:

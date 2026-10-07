@@ -17,14 +17,17 @@ from typing import Any
 from fakes import fixture_sources
 
 from ff.adapters.manual import ManualLeague
+from ff.adapters.nflverse_usage import NflverseUsage
 from ff.adapters.sleeper import parse_players
 from ff.adapters.store import Store
 from ff.api.deps import Deps
 from ff.api.mcp import build_server
+from ff.core.cache import FileCache
 from ff.core.config import Settings
 from ff.domain.models import Player
 
 PLAYERS = Path(__file__).parent / "fixtures" / "sleeper" / "players_sample.json"
+NFLVERSE = Path(__file__).parent / "fixtures" / "nflverse"
 WEEK = 5
 
 MANUAL_TOOLS = {
@@ -45,6 +48,22 @@ class ManualSleeper:
     def players(self) -> list[Player]:
         return parse_players(json.loads(PLAYERS.read_text()))
 
+    def trending_adds(self, hours: int = 24, limit: int = 25) -> dict[str, int]:
+        """Sleeper ids, as the live endpoint returns them. 4881 is Lamar Jackson."""
+        return {"4881": 120}
+
+
+def recorded_usage(tmp_path: Path) -> NflverseUsage:
+    """Real nflverse rows for ATL, DAL and SEA, weeks 1-4."""
+    stats = json.loads((NFLVERSE / "usage_2026_weeks1to4.json").read_text())
+    snaps = json.loads((NFLVERSE / "snaps_2026_weeks1to4.json").read_text())
+    return NflverseUsage(
+        2026,
+        FileCache(tmp_path / "cache"),
+        stats_loader=lambda _: stats,
+        snaps_loader=lambda _: snaps,
+    )
+
 
 def build(tmp_path: Path) -> Deps:
     config = Settings(
@@ -61,6 +80,7 @@ def build(tmp_path: Path) -> Deps:
         store=store,
         sleeper=ManualSleeper(),  # type: ignore[arg-type]
         config=config,
+        usage=recorded_usage(tmp_path),
     )
 
 
@@ -234,6 +254,7 @@ def test_an_unprojected_opponent_is_named_not_numbered(tmp_path: Path) -> None:
         store=deps.store,
         sleeper=deps.sleeper,
         config=deps.config,
+        usage=deps.usage,
     )
     enter_everything(deps)
     assert call(deps, "ff_recommend_lineup")["unprojected"] == ["Lamar Jackson"]
@@ -276,3 +297,59 @@ def test_health_reports_manual_mode_without_yahoo_credentials(tmp_path: Path) ->
     deps = build(tmp_path)
     assert deps.config.missing_required() == []
     assert deps.config.league_source == "manual"
+
+
+# ---- ratings ---------------------------------------------------------------------
+
+
+def test_compare_two_players_returns_a_verdict_and_the_evidence(tmp_path: Path) -> None:
+    deps = build(tmp_path)
+    asks = [{"name": "Bijan Robinson"}, {"name": "Javonte Williams", "team": "DAL"}]
+    result = call(deps, "ff_compare_players", {"players": asks})
+
+    verdict = result["verdict"]
+    assert verdict["too_close_to_call"] or verdict["pick"] in {"Bijan Robinson", "Javonte Williams"}
+    assert set(verdict["ranked"]) == {"Bijan Robinson", "Javonte Williams"}
+
+    bijan = next(p for p in result["players"] if p["player"] == "Bijan Robinson")
+    projection = bijan["projection"]
+    assert projection["floor"] < projection["points"] < projection["ceiling"]
+    assert set(projection["by_source"]) == {"fixture-a", "fixture-b"}
+    assert bijan["usage"]["games"] == 4, "real weeks 1-4 from nflverse"
+    assert bijan["usage"]["summary"].startswith("Bijan Robinson plays 65% of snaps")
+    assert deps.store.latest_snapshot(WEEK, "compare") is not None, "scorable later"
+    assert result["recommendation_id"]
+
+
+def test_compare_reads_sleeper_add_counts(tmp_path: Path) -> None:
+    asks = [{"name": "Lamar Jackson"}, {"name": "Josh Allen", "position": "QB"}]
+    result = call(build(tmp_path), "ff_compare_players", {"players": asks})
+    adds = {p["player"]: p["adds_24h"] for p in result["players"]}
+    assert adds == {"Lamar Jackson": 120, "Josh Allen": None}
+
+
+def test_compare_refuses_a_name_it_cannot_place(tmp_path: Path) -> None:
+    deps = build(tmp_path)
+    asks = [{"name": "Bijan Robinson"}, {"name": "Zzyzx Nobody"}]
+    result = call(deps, "ff_compare_players", {"players": asks})
+    assert result["verdict"] is None
+    assert "Zzyzx Nobody" in result["problems"][0]
+    assert deps.store.latest_snapshot(WEEK, "compare") is None
+
+
+def test_the_waiver_board_carries_usage_and_a_range(tmp_path: Path) -> None:
+    deps = build(tmp_path)
+    enter_everything(deps)
+    targets = call(deps, "ff_waiver_board", {"limit": 10})["targets"]
+    javonte = next(t for t in targets if t["player"] == "Javonte Williams")
+    assert javonte["usage"]["role"] == "workhorse"
+    assert javonte["projection"]["floor"] < javonte["projection"]["ceiling"]
+
+
+def test_the_lineup_carries_floor_and_ceiling_for_every_starter(tmp_path: Path) -> None:
+    deps = build(tmp_path)
+    enter_everything(deps)
+    plan = call(deps, "ff_recommend_lineup")
+    projected = [s for s in plan["starters"] if s["projection"] is not None]
+    assert all(s["floor_ceiling"][0] <= s["projection"] <= s["floor_ceiling"][1] for s in projected)
+    assert isinstance(plan["usage"], dict)

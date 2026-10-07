@@ -1,0 +1,1392 @@
+[
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Cooper Rush",
+"position": "QB",
+"team": "ATL",
+"offense_snaps": 60.0,
+"offense_pct": 1.0
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Drake London",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 59.0,
+"offense_pct": 0.98
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Bijan Robinson",
+"position": "RB",
+"team": "ATL",
+"offense_snaps": 46.0,
+"offense_pct": 0.77
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Kyle Pitts",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 38.0,
+"offense_pct": 0.63
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Jahan Dotson",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 38.0,
+"offense_pct": 0.63
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Charlie Woerner",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 37.0,
+"offense_pct": 0.62
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Zachariah Branch",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 18.0,
+"offense_pct": 0.3
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Olamide Zaccheaus",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 18.0,
+"offense_pct": 0.3
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Brian Robinson Jr.",
+"position": "RB",
+"team": "ATL",
+"offense_snaps": 15.0,
+"offense_pct": 0.25
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Austin Hooper",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 14.0,
+"offense_pct": 0.23
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Chris Blair",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 10.0,
+"offense_pct": 0.17
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Nick Muse",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 5.0,
+"offense_pct": 0.08
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Dak Prescott",
+"position": "QB",
+"team": "DAL",
+"offense_snaps": 58.0,
+"offense_pct": 1.0
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "George Pickens",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 49.0,
+"offense_pct": 0.84
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "CeeDee Lamb",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 47.0,
+"offense_pct": 0.81
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Jake Ferguson",
+"position": "TE",
+"team": "DAL",
+"offense_snaps": 44.0,
+"offense_pct": 0.76
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Javonte Williams",
+"position": "RB",
+"team": "DAL",
+"offense_snaps": 41.0,
+"offense_pct": 0.71
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Ryan Flournoy",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 41.0,
+"offense_pct": 0.71
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Brevyn Spann-Ford",
+"position": "TE",
+"team": "DAL",
+"offense_snaps": 13.0,
+"offense_pct": 0.22
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Luke Schoonmaker",
+"position": "TE",
+"team": "DAL",
+"offense_snaps": 13.0,
+"offense_pct": 0.22
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Jonathan Mingo",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 11.0,
+"offense_pct": 0.19
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "KaVontae Turpin",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 8.0,
+"offense_pct": 0.14
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Emari Demercado",
+"position": "RB",
+"team": "DAL",
+"offense_snaps": 5.0,
+"offense_pct": 0.09
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Jaxon Smith-Njigba",
+"position": "WR",
+"team": "SEA",
+"offense_snaps": 45.0,
+"offense_pct": 0.9
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Drew Lock",
+"position": "QB",
+"team": "SEA",
+"offense_snaps": 45.0,
+"offense_pct": 0.9
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "AJ Barner",
+"position": "TE",
+"team": "SEA",
+"offense_snaps": 44.0,
+"offense_pct": 0.88
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Cooper Kupp",
+"position": "WR",
+"team": "SEA",
+"offense_snaps": 39.0,
+"offense_pct": 0.78
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Rashid Shaheed",
+"position": "WR",
+"team": "SEA",
+"offense_snaps": 33.0,
+"offense_pct": 0.66
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Jadarian Price",
+"position": "RB",
+"team": "SEA",
+"offense_snaps": 24.0,
+"offense_pct": 0.48
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "George Holani",
+"position": "RB",
+"team": "SEA",
+"offense_snaps": 23.0,
+"offense_pct": 0.46
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Elijah Arroyo",
+"position": "TE",
+"team": "SEA",
+"offense_snaps": 11.0,
+"offense_pct": 0.22
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Eric Saubert",
+"position": "TE",
+"team": "SEA",
+"offense_snaps": 10.0,
+"offense_pct": 0.2
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Sam Darnold",
+"position": "QB",
+"team": "SEA",
+"offense_snaps": 5.0,
+"offense_pct": 0.1
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 1,
+"player": "Emanuel Wilson",
+"position": "RB",
+"team": "SEA",
+"offense_snaps": 3.0,
+"offense_pct": 0.06
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Jahan Dotson",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 52.0,
+"offense_pct": 0.75
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Drake London",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 43.0,
+"offense_pct": 0.62
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Cooper Rush",
+"position": "QB",
+"team": "ATL",
+"offense_snaps": 40.0,
+"offense_pct": 0.58
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Bijan Robinson",
+"position": "RB",
+"team": "ATL",
+"offense_snaps": 35.0,
+"offense_pct": 0.51
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Chris Blair",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 34.0,
+"offense_pct": 0.49
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Charlie Woerner",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 34.0,
+"offense_pct": 0.49
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Brian Robinson Jr.",
+"position": "RB",
+"team": "ATL",
+"offense_snaps": 33.0,
+"offense_pct": 0.48
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Austin Hooper",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 30.0,
+"offense_pct": 0.43
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Olamide Zaccheaus",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 30.0,
+"offense_pct": 0.43
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Jack Strand",
+"position": "QB",
+"team": "ATL",
+"offense_snaps": 29.0,
+"offense_pct": 0.42
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Kyle Pitts",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 26.0,
+"offense_pct": 0.38
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Nick Muse",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 14.0,
+"offense_pct": 0.2
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Zachariah Branch",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 14.0,
+"offense_pct": 0.2
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Drew Lock",
+"position": "QB",
+"team": "SEA",
+"offense_snaps": 70.0,
+"offense_pct": 1.0
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "AJ Barner",
+"position": "TE",
+"team": "SEA",
+"offense_snaps": 56.0,
+"offense_pct": 0.8
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Jaxon Smith-Njigba",
+"position": "WR",
+"team": "SEA",
+"offense_snaps": 47.0,
+"offense_pct": 0.67
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Rashid Shaheed",
+"position": "WR",
+"team": "SEA",
+"offense_snaps": 39.0,
+"offense_pct": 0.56
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Cooper Kupp",
+"position": "WR",
+"team": "SEA",
+"offense_snaps": 30.0,
+"offense_pct": 0.43
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Emanuel Wilson",
+"position": "RB",
+"team": "SEA",
+"offense_snaps": 29.0,
+"offense_pct": 0.41
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Jadarian Price",
+"position": "RB",
+"team": "SEA",
+"offense_snaps": 24.0,
+"offense_pct": 0.34
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Tory Horton",
+"position": "WR",
+"team": "SEA",
+"offense_snaps": 22.0,
+"offense_pct": 0.31
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Nick Kallerup",
+"position": "TE",
+"team": "SEA",
+"offense_snaps": 19.0,
+"offense_pct": 0.27
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "George Holani",
+"position": "RB",
+"team": "SEA",
+"offense_snaps": 18.0,
+"offense_pct": 0.26
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Eric Saubert",
+"position": "TE",
+"team": "SEA",
+"offense_snaps": 17.0,
+"offense_pct": 0.24
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Elijah Arroyo",
+"position": "TE",
+"team": "SEA",
+"offense_snaps": 15.0,
+"offense_pct": 0.21
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Dak Prescott",
+"position": "QB",
+"team": "DAL",
+"offense_snaps": 55.0,
+"offense_pct": 1.0
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Javonte Williams",
+"position": "RB",
+"team": "DAL",
+"offense_snaps": 44.0,
+"offense_pct": 0.8
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "George Pickens",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 42.0,
+"offense_pct": 0.76
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Ryan Flournoy",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 42.0,
+"offense_pct": 0.76
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "CeeDee Lamb",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 41.0,
+"offense_pct": 0.75
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Jake Ferguson",
+"position": "TE",
+"team": "DAL",
+"offense_snaps": 33.0,
+"offense_pct": 0.6
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Brevyn Spann-Ford",
+"position": "TE",
+"team": "DAL",
+"offense_snaps": 21.0,
+"offense_pct": 0.38
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Luke Schoonmaker",
+"position": "TE",
+"team": "DAL",
+"offense_snaps": 16.0,
+"offense_pct": 0.29
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Jonathan Mingo",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 11.0,
+"offense_pct": 0.2
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "Emari Demercado",
+"position": "RB",
+"team": "DAL",
+"offense_snaps": 9.0,
+"offense_pct": 0.16
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 2,
+"player": "KaVontae Turpin",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 5.0,
+"offense_pct": 0.09
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Michael Penix",
+"position": "QB",
+"team": "ATL",
+"offense_snaps": 71.0,
+"offense_pct": 1.0
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Drake London",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 66.0,
+"offense_pct": 0.93
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Bijan Robinson",
+"position": "RB",
+"team": "ATL",
+"offense_snaps": 51.0,
+"offense_pct": 0.72
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Jahan Dotson",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 47.0,
+"offense_pct": 0.66
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Charlie Woerner",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 43.0,
+"offense_pct": 0.61
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Kyle Pitts",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 42.0,
+"offense_pct": 0.59
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Olamide Zaccheaus",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 24.0,
+"offense_pct": 0.34
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Brian Robinson Jr.",
+"position": "RB",
+"team": "ATL",
+"offense_snaps": 19.0,
+"offense_pct": 0.27
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Nick Muse",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 17.0,
+"offense_pct": 0.24
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Austin Hooper",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 16.0,
+"offense_pct": 0.23
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Chris Blair",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 13.0,
+"offense_pct": 0.18
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Zachariah Branch",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 13.0,
+"offense_pct": 0.18
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Dak Prescott",
+"position": "QB",
+"team": "DAL",
+"offense_snaps": 74.0,
+"offense_pct": 1.0
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "George Pickens",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 63.0,
+"offense_pct": 0.85
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "CeeDee Lamb",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 61.0,
+"offense_pct": 0.82
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Javonte Williams",
+"position": "RB",
+"team": "DAL",
+"offense_snaps": 56.0,
+"offense_pct": 0.76
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Jake Ferguson",
+"position": "TE",
+"team": "DAL",
+"offense_snaps": 51.0,
+"offense_pct": 0.69
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Ryan Flournoy",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 49.0,
+"offense_pct": 0.66
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Brevyn Spann-Ford",
+"position": "TE",
+"team": "DAL",
+"offense_snaps": 28.0,
+"offense_pct": 0.38
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Luke Schoonmaker",
+"position": "TE",
+"team": "DAL",
+"offense_snaps": 16.0,
+"offense_pct": 0.22
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Jonathan Mingo",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 13.0,
+"offense_pct": 0.18
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "KaVontae Turpin",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 12.0,
+"offense_pct": 0.16
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Tyler Goodson",
+"position": "RB",
+"team": "DAL",
+"offense_snaps": 11.0,
+"offense_pct": 0.15
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Sam Darnold",
+"position": "QB",
+"team": "SEA",
+"offense_snaps": 67.0,
+"offense_pct": 1.0
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "AJ Barner",
+"position": "TE",
+"team": "SEA",
+"offense_snaps": 61.0,
+"offense_pct": 0.91
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Jaxon Smith-Njigba",
+"position": "WR",
+"team": "SEA",
+"offense_snaps": 58.0,
+"offense_pct": 0.87
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Cooper Kupp",
+"position": "WR",
+"team": "SEA",
+"offense_snaps": 45.0,
+"offense_pct": 0.67
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Rashid Shaheed",
+"position": "WR",
+"team": "SEA",
+"offense_snaps": 31.0,
+"offense_pct": 0.46
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "George Holani",
+"position": "RB",
+"team": "SEA",
+"offense_snaps": 24.0,
+"offense_pct": 0.36
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Emanuel Wilson",
+"position": "RB",
+"team": "SEA",
+"offense_snaps": 24.0,
+"offense_pct": 0.36
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Jadarian Price",
+"position": "RB",
+"team": "SEA",
+"offense_snaps": 19.0,
+"offense_pct": 0.28
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Eric Saubert",
+"position": "TE",
+"team": "SEA",
+"offense_snaps": 18.0,
+"offense_pct": 0.27
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Elijah Arroyo",
+"position": "TE",
+"team": "SEA",
+"offense_snaps": 18.0,
+"offense_pct": 0.27
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Tory Horton",
+"position": "WR",
+"team": "SEA",
+"offense_snaps": 15.0,
+"offense_pct": 0.22
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 3,
+"player": "Nick Kallerup",
+"position": "TE",
+"team": "SEA",
+"offense_snaps": 7.0,
+"offense_pct": 0.1
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Michael Penix",
+"position": "QB",
+"team": "ATL",
+"offense_snaps": 57.0,
+"offense_pct": 1.0
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Drake London",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 51.0,
+"offense_pct": 0.89
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Jahan Dotson",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 36.0,
+"offense_pct": 0.63
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Bijan Robinson",
+"position": "RB",
+"team": "ATL",
+"offense_snaps": 34.0,
+"offense_pct": 0.6
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Charlie Woerner",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 33.0,
+"offense_pct": 0.58
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Kyle Pitts",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 29.0,
+"offense_pct": 0.51
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Brian Robinson Jr.",
+"position": "RB",
+"team": "ATL",
+"offense_snaps": 24.0,
+"offense_pct": 0.42
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Olamide Zaccheaus",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 21.0,
+"offense_pct": 0.37
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Nick Muse",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 17.0,
+"offense_pct": 0.3
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Chris Blair",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 14.0,
+"offense_pct": 0.25
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Zachariah Branch",
+"position": "WR",
+"team": "ATL",
+"offense_snaps": 13.0,
+"offense_pct": 0.23
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Austin Hooper",
+"position": "TE",
+"team": "ATL",
+"offense_snaps": 13.0,
+"offense_pct": 0.23
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Dak Prescott",
+"position": "QB",
+"team": "DAL",
+"offense_snaps": 78.0,
+"offense_pct": 1.0
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "CeeDee Lamb",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 67.0,
+"offense_pct": 0.86
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "George Pickens",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 67.0,
+"offense_pct": 0.86
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Javonte Williams",
+"position": "RB",
+"team": "DAL",
+"offense_snaps": 58.0,
+"offense_pct": 0.74
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Ryan Flournoy",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 58.0,
+"offense_pct": 0.74
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Jake Ferguson",
+"position": "TE",
+"team": "DAL",
+"offense_snaps": 55.0,
+"offense_pct": 0.71
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Brevyn Spann-Ford",
+"position": "TE",
+"team": "DAL",
+"offense_snaps": 31.0,
+"offense_pct": 0.4
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Tyler Goodson",
+"position": "RB",
+"team": "DAL",
+"offense_snaps": 16.0,
+"offense_pct": 0.21
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Jonathan Mingo",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 14.0,
+"offense_pct": 0.18
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "KaVontae Turpin",
+"position": "WR",
+"team": "DAL",
+"offense_snaps": 8.0,
+"offense_pct": 0.1
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Luke Schoonmaker",
+"position": "TE",
+"team": "DAL",
+"offense_snaps": 6.0,
+"offense_pct": 0.08
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Sam Darnold",
+"position": "QB",
+"team": "SEA",
+"offense_snaps": 60.0,
+"offense_pct": 1.0
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "AJ Barner",
+"position": "TE",
+"team": "SEA",
+"offense_snaps": 54.0,
+"offense_pct": 0.9
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Jaxon Smith-Njigba",
+"position": "WR",
+"team": "SEA",
+"offense_snaps": 53.0,
+"offense_pct": 0.88
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Rashid Shaheed",
+"position": "WR",
+"team": "SEA",
+"offense_snaps": 36.0,
+"offense_pct": 0.6
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Emanuel Wilson",
+"position": "RB",
+"team": "SEA",
+"offense_snaps": 36.0,
+"offense_pct": 0.6
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Cooper Kupp",
+"position": "WR",
+"team": "SEA",
+"offense_snaps": 34.0,
+"offense_pct": 0.57
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "George Holani",
+"position": "RB",
+"team": "SEA",
+"offense_snaps": 22.0,
+"offense_pct": 0.37
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Elijah Arroyo",
+"position": "TE",
+"team": "SEA",
+"offense_snaps": 19.0,
+"offense_pct": 0.32
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Eric Saubert",
+"position": "TE",
+"team": "SEA",
+"offense_snaps": 18.0,
+"offense_pct": 0.3
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Tory Horton",
+"position": "WR",
+"team": "SEA",
+"offense_snaps": 10.0,
+"offense_pct": 0.17
+},
+{
+"season": 2026,
+"game_type": "REG",
+"week": 4,
+"player": "Velus Jones Jr.",
+"position": "RB",
+"team": "SEA",
+"offense_snaps": 2.0,
+"offense_pct": 0.03
+}
+]

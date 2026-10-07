@@ -14,7 +14,8 @@ the release assets prove otherwise.
 | ESPN scoreboard | live spread, total, weather, indoor flag | none | $0 | **fragile** |
 | ESPN `kona_player_info` | weekly projections, ownership, ADP, auction value | none | $0 | **fragile** |
 | nflverse injuries | report status + practice participation | none | $0 | high |
-| nflverse snap counts | usage/role | none | $0 | high (lags ~1 day) |
+| nflverse snap counts + player stats | usage/role: snap, target, carry share | none | $0 | high (lags ~1 day) |
+| Firecrawl fantasy board | six more weekly projections (Draft Sharks, CBS, FFToday, FFCalculator, StartWho, FantasyData) | none | $0 | **fragile** |
 | Sleeper `/state/nfl` | canonical current week | none | $0 | high |
 | Sleeper trending | FAAB demand signal | none | $0 | high |
 | FantasyPros | ECR + **std-dev** (uncertainty input) | `x-api-key` | **$8.99/mo** | high |
@@ -61,6 +62,35 @@ Coverage is partial (182 rows in Week 1 vs a typical 400–600) — treat as inc
   and no game designation. Values seen in Week 1: Out, Doubtful, Questionable, null.
 - Partial coverage has a consequence worth stating: **a player with no row is "nothing
   reported", not "healthy."** The adapter returns an absent key, never a clean bill.
+
+### nflverse usage — `load_player_stats` + `load_snap_counts`
+
+Used by `adapters/nflverse_usage.py` for the usage block on every rated player. Probed
+2026-10-06: weeks 1-4 of 2026 present in both tables, 4449 stat rows of 150 columns and 5970
+snap rows. `[empirical]`
+
+- `target_share` and `air_yards_share` are nflverse's own. Carry share is not published; it
+  is computed as a player's carries over the sum of his team's carries that week.
+- `offense_pct` comes from Pro Football Reference, so names are PFR's spelling. The join is
+  on normalized name and position and has matched every player checked so far.
+- Only completed weeks are read. A week in progress looks like a demotion.
+- A season average can hide a role change: Zay Flowers played 29%, 33%, then 73% of snaps
+  in 2026 weeks 1, 3 and 4. The summary shows the last game when it differs by 10 points.
+
+### Firecrawl fantasy board — six forecasters on one public page
+
+https://www.firecrawl.dev/alexandria/fantasy. Free, no key, **no feed**: the rows are inside
+the page's Next.js flight payload (`self.__next_f.push`). Treated like ESPN: optional,
+validated on every fetch. Probed 2026-10-06 (`adapters/firecrawl.py` has the detail):
+
+- `?position=` takes QB, RB, WR, TE, K, DST. Any other value silently serves QBs.
+- `?scoring=std` and `?scoring=ppr` work. `half_ppr` and `standard` are silently ignored and
+  serve PPR. Half-PPR is computed as the mean of PPR and standard, per site.
+- One week at a time, named in the page title, and it lags: on the Tuesday morning of week
+  5 it still showed week 4. A page for the wrong week is refused.
+- The `matchup` grades are not read. They named the wrong opponent in 28 of 30 QB rows in
+  the morning and 40 of 368 rows that evening.
+- Each site becomes its own projection source, so calibration grades each one.
 
 ### nflverse `games.csv` — free historical odds and weather
 
@@ -173,7 +203,7 @@ with the result.
 **Reliable:** nflverse releases (automated, versioned, years of uptime), Sleeper (documented,
 versioned, explicit limits and ToS), Open-Meteo, FantasyPros (you have a contract).
 
-**Fragile:** everything ESPN. See above.
+**Fragile:** everything ESPN, and the Firecrawl board. See above.
 
 **Fragile one level down:** nflverse's *upstream* dependencies. Snap counts depend on Pro
 Football Reference's publishing schedule, FTN charting on FTN's. When PFR changes a page,

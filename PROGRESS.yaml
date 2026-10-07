@@ -7,7 +7,7 @@ milestones:
   - id: M0-M4
     name: Setup, Yahoo read path, projections, lineup, waivers, MCP front door
     status: done
-    notes: See PROGRESS-archive.yaml. 456 tests passing; make check and make test green.
+    notes: See PROGRESS-archive.yaml. 508 tests passing; make check and make test green.
 
   - id: M5
     name: Write path
@@ -61,14 +61,28 @@ milestones:
       all-or-nothing, inputs expire after 7 days, and each decision says where its inputs
       came from. See docs/MANUAL_MODE.md and docs/DECISIONS.md.
 
+  - id: M9
+    name: Player ratings -- eight forecasters and usage
+    status: done
+    notes: >
+      2026-10-06. Firecrawl's board adds six forecasters (Draft Sharks, CBS, FFToday,
+      FFCalculator, StartWho, FantasyData), one projection source per site, so the blend
+      averages eight and calibration grades each. nflverse usage (snap, target, carry share
+      and trend) rides along with every rated player. ff_compare_players returns a verdict
+      or "too close to call" plus each player's evidence; the board and the lineup carry
+      the same usage block and a floor/ceiling. Usage informs, never moves a number -- see
+      docs/DECISION_MATH.md and docs/DECISIONS.md.
+
 in_progress: []
 
 next:
   - Confirm the real league settings with ff_update_league (slots, team count). Until
     then every answer runs on Yahoo's default roster and 12 teams, and says so.
-  - Firecrawl's six-source page as a projection source, points only (its matchup grades
-    disagree with the listed opponent in 28 of 30 rows checked 2026-10-06).
-  - Usage data from nflverse for the waiver board.
+  - Backtest the usage lean once a few weeks of compare/lineup snapshots exist: among
+    too-close calls, did the rising-usage player outscore the other more than half the
+    time? Until then it stays labelled [theory].
+  - After 3-4 graded weeks, read per-source MAE from ff_how_am_i_doing and drop any
+    Firecrawl site that is clearly worse than the rest.
   - Re-record tests/fixtures/yahoo/ against the live league once Yahoo approves access.
     Every Yahoo fixture is hand-built from documented shapes today.
   - Fix BUG-001, two mypy errors in adapters/yahoo/executors.py. Now live code rather

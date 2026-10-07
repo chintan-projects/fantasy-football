@@ -29,6 +29,7 @@ READ_ONLY_TOOLS = {
     "ff_league_transactions",
     "ff_list_preferences",
     "ff_how_am_i_doing",
+    "ff_compare_players",
 }
 WRITING_TOOLS = {"ff_record_preference", "ff_propose_claim", "ff_confirm"}
 

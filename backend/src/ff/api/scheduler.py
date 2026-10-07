@@ -31,6 +31,7 @@ from zoneinfo import ZoneInfo
 
 from ff.api.deps import Deps
 from ff.api.payloads import lineup_plan, lineup_reasoning
+from ff.api.rating_tools import contested_usage
 from ff.core.logging import get_logger
 from ff.services import calibration
 from ff.services import waivers as waiver_service
@@ -72,10 +73,11 @@ def snapshot_lineup(deps: Deps) -> str:
     )
     # The same payload the tool returns, built by the same function. Shaping it here
     # independently is what produced BUG-013.
+    usage, usage_notes = contested_usage(deps, week, bundle, result)
     return deps.store.save_recommendation(
         week,
         "lineup",
-        lineup_plan(result, bundle, week),
+        lineup_plan(result, bundle, week, usage, usage_notes),
         lineup_reasoning(result),
         snapshot_id=snapshot_id,
     )

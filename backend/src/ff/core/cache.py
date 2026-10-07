@@ -24,6 +24,9 @@ DEFAULT_TTL_SECONDS: dict[str, int] = {
     # Sunday morning is a wrong recommendation, not a slightly old one.
     "sleeper_projections": 1800,
     "espn_projections": 3600,
+    # Firecrawl caches its own page for 15 minutes; its sources update a few times a week.
+    "firecrawl": 3 * 3600,
+    "nflverse_usage": 6 * 3600,
     # Short on purpose. The owner bids from the Yahoo app, so a balance more than a few
     # minutes old may already be wrong, and it is re-read before every submission anyway.
     "yahoo_faab": 120,

@@ -36,7 +36,7 @@ from mcp.types import ToolAnnotations
 from pydantic import Field
 from starlette.responses import JSONResponse
 
-from ff.api import manual_tools, scheduler
+from ff.api import manual_tools, rating_tools, scheduler
 from ff.api.auth import OnlyTheOwner, github_auth
 from ff.api.deps import Deps, default_deps
 from ff.api.payloads import lineup_plan, lineup_reasoning
@@ -82,11 +82,16 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
     """Construct the server. Dependencies are injected so tests drive the real tools."""
     d = deps if deps is not None else default_deps()
     manual = d.config.league_source == "manual"
-    instructions = INSTRUCTIONS + (manual_tools.MANUAL_INSTRUCTIONS if manual else "")
+    instructions = (
+        INSTRUCTIONS
+        + rating_tools.RATINGS_INSTRUCTIONS
+        + (manual_tools.MANUAL_INSTRUCTIONS if manual else "")
+    )
     mcp: FastMCP = FastMCP(name="fantasy-football-copilot", instructions=instructions, auth=auth)
     approvals = ApprovalStore(d.store)
     if manual:
         manual_tools.register(mcp, d)
+    rating_tools.register(mcp, d)
 
     def _week(week: int | None) -> int:
         """The week oracle is Sleeper. Never computed from a date (CLAUDE.md 2.6)."""
@@ -129,7 +134,8 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
             to_week_inputs(bundle, draws=d.config.monte_carlo_draws, seed=d.config.random_seed)
         )
 
-        plan = lineup_plan(result, bundle, wk)
+        usage, usage_notes = rating_tools.contested_usage(d, wk, bundle, result)
+        plan = lineup_plan(result, bundle, wk, usage, usage_notes)
         plan["caveats"] += manual_tools.caveats(d)
         plan["recommendation_id"] = d.store.save_recommendation(
             wk, "lineup", plan, lineup_reasoning(result), snapshot_id=snapshot_id
@@ -163,6 +169,7 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
         pos = Position(position.upper()) if position else None
         bundle = load_week(d.yahoo, d.sources, wk, with_opponent=False)
         entries = waiver_service.build_board(d.yahoo, d.sources, bundle, position=pos, limit=limit)
+        usage, usage_notes = rating_tools.usage_for(d, wk, [e.target.player for e in entries])
         return {
             "week": wk,
             "targets": [
@@ -172,6 +179,8 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
                     "position": e.target.player.position.value,
                     "nfl_team": e.target.player.team,
                     "projected_points": round(e.projection.mean, 2),
+                    "projection": rating_tools.projection_block(e.projection),
+                    "usage": usage.get(e.target.player.id),
                     "replacement_points": round(e.replacement_points, 2),
                     "vorp_per_week": round(e.target.ros_vorp_per_week, 2),
                     "weeks_remaining": e.target.weeks_remaining,
@@ -183,8 +192,11 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
             "caveats": [
                 "Rest-of-season value assumes the current role holds. A role change is "
                 "the whole reason a player is worth adding and also the least estimable "
-                "number in the model. [theory]",
+                "number in the model. [theory] The usage block is the early evidence of "
+                "one: a share that is rising shows up before the points do. [empirical, "
+                "not yet measured in this league]",
                 *bundle.notes,
+                *usage_notes,
                 *manual_tools.caveats(d),
             ],
         }

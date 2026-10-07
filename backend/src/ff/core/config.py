@@ -120,7 +120,9 @@ class Settings(BaseSettings):
     # numbers and ESPN serves its own, which is what makes the average worth taking.
     # FantasyPros is still implemented and still works -- it just costs $8.99/mo and buys
     # nothing the pair does not already provide, except rank_std. See docs/DECISIONS.md.
-    projection_sources: list[str] = Field(default_factory=lambda: ["espn", "sleeper"])
+    # "firecrawl" adds six more forecasters read off one public page (adapters/firecrawl.py).
+    # They are optional: if the page is down or a week behind, ESPN and Sleeper carry on.
+    projection_sources: list[str] = Field(default_factory=lambda: ["espn", "sleeper", "firecrawl"])
 
     @field_validator("random_seed", mode="before")
     @classmethod

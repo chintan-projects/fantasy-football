@@ -73,7 +73,7 @@ def enter_roster(
 ) -> EntryResult:
     """Save my roster, or this week's opponent. Nothing is saved unless every name matched."""
     matches = [directory.resolve(e) for e in entries]
-    problems = [_problem(m) for m in matches if not m.ok]
+    problems = [match_problem(m) for m in matches if not m.ok]
     problems += _bad_slots(entries)
     problems += _listed_twice(matches)
     if not entries:
@@ -110,7 +110,7 @@ def enter_free_agents(
         record["percent_rostered"] = match.entry.percent_rostered
         records.append(record)
 
-    problems = [_problem(m) for m in matches if not m.ok]
+    problems = [match_problem(m) for m in matches if not m.ok]
     if not records:
         return EntryResult(saved=False, matched=matches, problems=problems or ["No players."])
     store.save_league_input("free_agents", week, {"players": records})
@@ -132,7 +132,7 @@ def enter_transactions(store: Store, directory: PlayerDirectory, bids: list[Bid]
         for b, m in zip(bids, matches, strict=True)
         if m.player is not None
     ]
-    problems = [_problem(m) for m in matches if not m.ok]
+    problems = [match_problem(m) for m in matches if not m.ok]
     if not rows:
         return EntryResult(saved=False, matched=matches, problems=problems or ["No bids."])
     week = max(b.week for b, m in zip(bids, matches, strict=True) if m.player is not None)
@@ -284,7 +284,7 @@ def hand_entered_caveats(store: Store, now: Callable[[], float] = time.time) -> 
 # ---- wording ---------------------------------------------------------------------
 
 
-def _problem(match: Match) -> str:
+def match_problem(match: Match) -> str:
     seen = _as_entered(match)
     if match.how == "ambiguous":
         options = "; ".join(

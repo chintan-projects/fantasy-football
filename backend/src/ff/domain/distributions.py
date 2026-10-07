@@ -121,23 +121,48 @@ def simulate(
 
     out = np.empty((draws, n))
     for i, ctx in enumerate(contexts):
-        proj = ctx.projection
-        p_zero = min(max(proj.p_zero, 0.0), 0.95)
-        # Conditional mean: the unconditional mean already includes the zero mass.
-        cond_mean = proj.mean / (1.0 - p_zero) if p_zero < 1.0 else 0.0
-        shape, scale = _gamma_params(cond_mean, proj.total_sd)
-
-        u = uniforms[:, i]
-        is_zero = u < p_zero
-        rescaled = np.clip((u - p_zero) / max(1.0 - p_zero, 1e-9), 1e-9, 1 - 1e-9)
-        # Gamma quantile via the gamma distribution's inverse CDF, approximated by
-        # sampling-free Wilson-Hilferty. Accurate enough at the precision this problem
-        # supports (see fantasy-decision-math section 4) and avoids a scipy dependency.
-        z = np.sqrt(2.0) * _erfinv(2.0 * rescaled - 1.0)
-        wh = shape * (1.0 - 1.0 / (9.0 * shape) + z / (3.0 * np.sqrt(shape))) ** 3
-        values = np.clip(wh, 0.0, None) * scale
-        out[:, i] = np.where(is_zero, 0.0, values)
+        out[:, i] = quantile(ctx.projection, uniforms[:, i])
     return out
+
+
+def quantile(projection: Projection, u: np.ndarray) -> np.ndarray:
+    """The marginal's inverse CDF: points at each probability level in ``u``.
+
+    Zero-inflated Gamma, the same marginal ``simulate`` samples from, so a floor or a
+    ceiling read from here is the one the simulation actually used.
+    """
+    p_zero = min(max(projection.p_zero, 0.0), 0.95)
+    # Conditional mean: the unconditional mean already includes the zero mass.
+    cond_mean = projection.mean / (1.0 - p_zero) if p_zero < 1.0 else 0.0
+    shape, scale = _gamma_params(cond_mean, projection.total_sd)
+
+    u = np.clip(u, 1e-9, 1 - 1e-9)
+    is_zero = u < p_zero
+    rescaled = np.clip((u - p_zero) / max(1.0 - p_zero, 1e-9), 1e-9, 1 - 1e-9)
+    # Gamma quantile via the gamma distribution's inverse CDF, approximated by
+    # sampling-free Wilson-Hilferty. Accurate enough at the precision this problem
+    # supports (see fantasy-decision-math section 4) and avoids a scipy dependency.
+    z = np.sqrt(2.0) * _erfinv(2.0 * rescaled - 1.0)
+    wh = shape * (1.0 - 1.0 / (9.0 * shape) + z / (3.0 * np.sqrt(shape))) ** 3
+    values = np.clip(wh, 0.0, None) * scale
+    return np.asarray(np.where(is_zero, 0.0, values))
+
+
+#: The probability levels shown as a player's floor and ceiling.
+FLOOR_LEVEL = 0.10
+CEILING_LEVEL = 0.90
+
+
+def floor_ceiling(projection: Projection) -> tuple[float, float]:
+    """The 10th and 90th percentile of a player's week: a bad day and a good one.
+
+    One week in ten he scores below the floor and one in ten above the ceiling, if the
+    distribution is right. Its width comes mostly from ``aleatoric_sd``, a position prior,
+    so it is honest about the spread of outcomes and says little about this particular
+    player's spread. `[theory]`
+    """
+    low, high = quantile(projection, np.array([FLOOR_LEVEL, CEILING_LEVEL]))
+    return round(float(low), 1), round(float(high), 1)
 
 
 def _erfinv(y: np.ndarray) -> np.ndarray:
