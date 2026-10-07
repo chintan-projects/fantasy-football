@@ -1,5 +1,19 @@
 # Every TODO in code needs an entry here. Newest first.
 bugs:
+  - id: BUG-021
+    title: Some players get no snap share because PFR spells their name differently
+    found: 2026-10-06
+    status: open
+    severity: low
+    detail: >
+      Live week 5 board: Kenny Gainwell has targets and carries from player_stats but no
+      offense_pct, so his role reads "unknown". Snap counts come from Pro Football
+      Reference, which likely lists him under another first name. The join in
+      adapters/nflverse_usage.py is on normalized name and position only. Fix by joining
+      on nflverse's player id (snap counts carry pfr_player_id; nflreadpy's player table
+      maps it to gsis_id, which player_stats uses). Start with a regression test on the
+      Gainwell rows.
+
   - id: BUG-020
     title: api/mcp.py is 744 lines, over the 600-line limit
     found: 2026-10-06
