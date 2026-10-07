@@ -1,5 +1,16 @@
 # Every TODO in code needs an entry here. Newest first.
 bugs:
+  - id: BUG-018
+    title: An opponent's unprojected starter was listed by id
+    found: 2026-10-06
+    status: fixed
+    detail: >
+      ff_recommend_lineup listed Lamar Jackson as "4881" under unprojected. The name lookup
+      in api/payloads.py covered the owner's roster only, so any opponent starter neither
+      source projected came back as a bare id. Same in Yahoo mode, where it would have
+      been a Yahoo player key. Found running manual mode against live week 5 data;
+      regression test in tests/test_mcp_manual.py.
+
   - id: BUG-017
     title: Every deploy logged Claude out of the connector
     found: 2026-09-14

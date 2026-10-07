@@ -1,7 +1,8 @@
 """Sleeper. Free, documented, versioned, and the clearest terms of any source here.
 
-Used for three things: the canonical current week, the trending-add demand signal, and
-weekly projections. Stay under 1000 calls/minute. The full player list is ~5 MB and must
+Used for four things: the canonical current week, the trending-add demand signal, weekly
+projections, and -- in manual league mode -- the player directory that names typed in from a
+screenshot are matched against. Stay under 1000 calls/minute. The full player list is ~5 MB and must
 be fetched at most once a day -- Sleeper asks for this explicitly.
 
 Two hosts, and the difference matters. The documented API is ``api.sleeper.app/v1``. The
@@ -12,6 +13,7 @@ keep its shape. Verified live on 2026-09-13 -- see ``SleeperProjections``.
 
 from __future__ import annotations
 
+import time
 from typing import Any, Literal
 
 import httpx
@@ -20,7 +22,7 @@ from ff.adapters._common import canonical_team, match_key, parse_position
 from ff.core.cache import DEFAULT_TTL_SECONDS, FileCache
 from ff.core.errors import SchemaDrift, SourceUnavailable
 from ff.core.logging import get_logger
-from ff.domain.models import Player, PlayerId, Position, SourceStatus
+from ff.domain.models import Player, PlayerId, Position, SourceStatus, slots_for
 
 BASE = "https://api.sleeper.app/v1"
 
@@ -48,6 +50,7 @@ class SleeperClient:
     def __init__(self, cache: FileCache, client: httpx.Client | None = None) -> None:
         self.cache = cache
         self.client = client or httpx.Client(timeout=15.0)
+        self._players: tuple[float, list[Player]] | None = None
 
     def _get(self, path: str, cache_key: str) -> Any:
         cached = self.cache.get(cache_key)
@@ -70,6 +73,23 @@ class SleeperClient:
         if not isinstance(data, dict) or "week" not in data:
             raise SchemaDrift("sleeper", "state payload has no 'week'", required=True)
         return int(data["week"])
+
+    def players(self) -> list[Player]:
+        """Every player at a position fantasy rosters hold, keyed by Sleeper's own id.
+
+        This is the full ~5 MB list, so it is cached for a day on disk (Sleeper asks for at
+        most one fetch a day). The parsed list is also held in memory for a day, because
+        re-reading and re-parsing 5 MB on every tool call is the slow part.
+        """
+        ttl = DEFAULT_TTL_SECONDS["sleeper_players"]
+        now = time.monotonic()
+        if self._players is not None and now - self._players[0] < ttl:
+            return self._players[1]
+        data = self._get("/players/nfl", "sleeper_players:nfl")
+        if not isinstance(data, dict) or not data:
+            raise SchemaDrift("sleeper", "players payload is not a non-empty object", required=True)
+        self._players = (now, parse_players(data))
+        return self._players[1]
 
     def trending_adds(self, hours: int = 24, limit: int = 25) -> dict[str, int]:
         """Raw add counts. Normalize by availability before using -- see domain.faab."""
@@ -258,4 +278,40 @@ def index_projections(payload: Any, points_key: str) -> dict[str, float]:
             raise SchemaDrift(
                 "sleeper", f"'{points_key}' is {points!r}, not a number", required=True
             ) from None
+    return out
+
+
+def parse_players(payload: dict[str, Any]) -> list[Player]:
+    """Sleeper's player map, reduced to players a fantasy roster can hold.
+
+    Linebackers, guards and punters are dropped: a fantasy roster cannot hold one, and
+    keeping them would make "Josh Allen" ambiguous between the quarterback and a guard.
+    Players with no NFL team are kept -- a free agent can still sit on a fantasy bench --
+    and the matcher prefers rostered players when a name is shared.
+
+    Team defenses have no ``full_name``; their name is city plus nickname, "Buffalo Bills",
+    which is what Yahoo calls them too.
+    """
+    out: list[Player] = []
+    for player_id, row in payload.items():
+        if not isinstance(row, dict):
+            continue
+        position = parse_position(row.get("position"))
+        if position is None:
+            continue
+        first = str(row.get("first_name") or "").strip()
+        last = str(row.get("last_name") or "").strip()
+        name = str(row.get("full_name") or f"{first} {last}").strip()
+        if not name:
+            continue
+        out.append(
+            Player(
+                id=PlayerId(str(player_id)),
+                name=name,
+                position=position,
+                team=canonical_team(row.get("team")),
+                eligible_slots=slots_for(position),
+                injury_status=row.get("injury_status") or None,
+            )
+        )
     return out

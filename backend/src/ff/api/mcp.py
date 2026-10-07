@@ -36,7 +36,7 @@ from mcp.types import ToolAnnotations
 from pydantic import Field
 from starlette.responses import JSONResponse
 
-from ff.api import scheduler
+from ff.api import manual_tools, scheduler
 from ff.api.auth import OnlyTheOwner, github_auth
 from ff.api.deps import Deps, default_deps
 from ff.api.payloads import lineup_plan, lineup_reasoning
@@ -81,8 +81,12 @@ def _read_only(idempotent: bool = True) -> ToolAnnotations:
 def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
     """Construct the server. Dependencies are injected so tests drive the real tools."""
     d = deps if deps is not None else default_deps()
-    mcp: FastMCP = FastMCP(name="fantasy-football-copilot", instructions=INSTRUCTIONS, auth=auth)
+    manual = d.config.league_source == "manual"
+    instructions = INSTRUCTIONS + (manual_tools.MANUAL_INSTRUCTIONS if manual else "")
+    mcp: FastMCP = FastMCP(name="fantasy-football-copilot", instructions=instructions, auth=auth)
     approvals = ApprovalStore(d.store)
+    if manual:
+        manual_tools.register(mcp, d)
 
     def _week(week: int | None) -> int:
         """The week oracle is Sleeper. Never computed from a date (CLAUDE.md 2.6)."""
@@ -126,6 +130,7 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
         )
 
         plan = lineup_plan(result, bundle, wk)
+        plan["caveats"] += manual_tools.caveats(d)
         plan["recommendation_id"] = d.store.save_recommendation(
             wk, "lineup", plan, lineup_reasoning(result), snapshot_id=snapshot_id
         )
@@ -180,6 +185,7 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
                 "the whole reason a player is worth adding and also the least estimable "
                 "number in the model. [theory]",
                 *bundle.notes,
+                *manual_tools.caveats(d),
             ],
         }
 
@@ -247,6 +253,7 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
                 "Bid this once. A losing bid costs nothing -- you pay only if you win -- "
                 "so probing low forfeits the player for free and teaches you nothing. "
                 "[theory]",
+                *manual_tools.caveats(d),
             ],
         }
         payload["recommendation_id"] = d.store.save_recommendation(wk, "bid", payload, bid.reason)
@@ -501,6 +508,7 @@ def build_server(deps: Deps | None = None, auth: Any = None) -> FastMCP:
             "remaining_budget_after": budget - bid.recommended_bid,
             "how_bidders_were_estimated": how,
             "reason": bid.reason,
+            "caveats": manual_tools.caveats(d),
             "submitted": False,
             "next_step": (
                 "Show this to the owner. If they approve, call ff_confirm with the "
@@ -643,6 +651,7 @@ def http_app(deps: Deps | None = None, *, authenticate: bool | None = None) -> A
             {
                 "ok": True,
                 "authenticated": wants_auth,
+                "league_source": d.config.league_source,
                 "configured": not missing,
                 "config_missing": missing,
                 "write_executor": d.config.write_executor,

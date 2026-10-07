@@ -302,3 +302,26 @@ and the maximum cross-source disagreement dropped from 15.14 points to 5.89. `[e
 **The distinction.** A backup who genuinely projects to zero has a stat line full of
 zeroes. A player with no projection has no stat line at all. That is the test, and it is
 ESPN's own encoding rather than a heuristic.
+
+## 2026-10-06 — Manual league mode while Yahoo stays silent
+
+**Decision.** Add `FF_LEAGUE_SOURCE=manual`. The owner sends screenshots of the Yahoo app
+to Claude, Claude passes the players to `ff_enter_*` tools, and `ManualLeague` serves them
+through the same `LeagueReader` interface the Yahoo client uses. Deployed as the default.
+
+**Why.** It is week 5. The access application has had no response in three weeks, and the
+access page says thin applications are closed without reply, so waiting has no end date.
+Meanwhile the owner was already doing this by hand in a Claude project, with no snapshot,
+no simulation and no scoring. Moving that work through the server keeps CLAUDE.md §1's
+rule, that tools return decisions and not raw data, and gets every hand-run week into
+calibration.
+
+**What it costs.** The bidder estimate loses its transaction history until the owner sends
+it. The FAAB balance is what the owner last said, not a live read. League settings are
+assumed until confirmed. Every decision returned in this mode says all three out loud.
+
+**Second caller.** `LeagueReader` already had two (the Yahoo client and the test
+fixtures). This is a third, not a new seam.
+
+**Reversible.** Remove the line from `fly.toml` once Yahoo approves. Stored inputs stay in
+`league_inputs`, which nothing in Yahoo mode reads.

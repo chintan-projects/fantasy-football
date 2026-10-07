@@ -11,6 +11,15 @@ class ConfigError(FFError):
     """Missing or contradictory configuration. Fail at startup, not at 11:58 on Sunday."""
 
 
+class MissingInput(FFError):
+    """Something the owner enters by hand has not been entered, or is too old to trust.
+
+    Only raised in manual league mode, where the owner is the data source. The message is
+    the instruction: it says what to send and where in the Yahoo app to find it, because
+    the person reading it is on a phone and the fix is a screenshot, not a config change.
+    """
+
+
 class SourceUnavailable(FFError):
     """An external source failed. Optional sources degrade; required sources stop the run."""
 

@@ -122,6 +122,18 @@ CREATE TABLE IF NOT EXISTS approvals (
     spent_at     REAL
 );
 
+-- What the owner typed in, or Claude read off a screenshot, in manual league mode. Append
+-- only: the latest row of a kind is the current value, and the earlier rows are the record
+-- of what each decision was made on. Overwriting them would erase that record.
+CREATE TABLE IF NOT EXISTS league_inputs (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind       TEXT NOT NULL,
+    week       INTEGER NOT NULL,
+    entered_at REAL NOT NULL,
+    payload    TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_league_inputs_kind ON league_inputs(kind, week);
+
 -- intent -> approval -> request -> response. Crash recovery reads this rather than
 -- guessing. CLAUDE.md 2.4.
 CREATE TABLE IF NOT EXISTS write_journal (
@@ -145,6 +157,16 @@ class Preference:
     text: str
     created_at: float
     active: bool
+
+
+@dataclass(frozen=True, slots=True)
+class LeagueInput:
+    """One thing the owner entered by hand, and when."""
+
+    kind: str
+    week: int
+    entered_at: float
+    payload: Any
 
 
 @dataclass(frozen=True, slots=True)
@@ -440,6 +462,39 @@ class Store:
             ).fetchone()
         return None if row is None else str(row["summary"])
 
+    # ---- hand-entered league state ----------------------------------------------
+
+    def save_league_input(self, kind: str, week: int, payload: Any) -> int:
+        with self._conn() as conn:
+            cur = conn.execute(
+                "INSERT INTO league_inputs (kind, week, entered_at, payload) VALUES (?, ?, ?, ?)",
+                (kind, week, time.time(), json.dumps(payload, default=str)),
+            )
+            row_id = int(cur.lastrowid or 0)
+        log.info("league_input_saved", kind=kind, week=week)
+        return row_id
+
+    def latest_league_input(self, kind: str, week: int | None = None) -> LeagueInput | None:
+        """The current value of one kind, optionally for one week only."""
+        query = "SELECT * FROM league_inputs WHERE kind = ?"
+        params: tuple[Any, ...] = (kind,)
+        if week is not None:
+            query += " AND week = ?"
+            params += (week,)
+        # id breaks ties: two entries inside the same clock tick must still have an order.
+        query += " ORDER BY entered_at DESC, id DESC LIMIT 1"
+        with self._conn() as conn:
+            row = conn.execute(query, params).fetchone()
+        return None if row is None else _league_input(row)
+
+    def league_inputs(self, kind: str) -> list[LeagueInput]:
+        """Every entry of one kind, oldest first."""
+        with self._conn() as conn:
+            rows = conn.execute(
+                "SELECT * FROM league_inputs WHERE kind = ? ORDER BY entered_at, id", (kind,)
+            ).fetchall()
+        return [_league_input(r) for r in rows]
+
     # ---- write journal -----------------------------------------------------------
 
     def journal_intent(
@@ -472,3 +527,12 @@ class Store:
         with self._conn() as conn:
             rows = conn.execute("SELECT * FROM write_journal WHERE ok IS NULL").fetchall()
         return [dict(r) for r in rows]
+
+
+def _league_input(row: sqlite3.Row) -> LeagueInput:
+    return LeagueInput(
+        kind=row["kind"],
+        week=row["week"],
+        entered_at=row["entered_at"],
+        payload=json.loads(row["payload"]),
+    )

@@ -13,6 +13,7 @@ from pathlib import Path
 
 from ff.adapters.base import ActualsSource, LeagueReader, ProjectionSource
 from ff.adapters.espn import EspnProjections
+from ff.adapters.manual import ManualLeague
 from ff.adapters.nflverse import NflverseActuals
 from ff.adapters.sleeper import SleeperClient, SleeperProjections
 from ff.adapters.store import Store
@@ -26,6 +27,8 @@ from ff.core.errors import ConfigError
 @dataclass(frozen=True, slots=True)
 class Deps:
     yahoo: LeagueReader
+    """The league. Named for Yahoo because that is the system of record; in manual mode it
+    is ``ManualLeague``, which reads the same facts from what the owner entered."""
     sources: list[ProjectionSource]
     store: Store
     sleeper: SleeperClient
@@ -51,13 +54,21 @@ def build_deps(config: Settings | None = None) -> Deps:
     cache = FileCache(REPO_ROOT / ".cache")
     season = _season_from_config(cfg)
 
-    auth = YahooAuth(
-        TokenStore(Path(cfg.yahoo_token_path)),
-        client_id=cfg.yahoo_client_id,
-        client_secret=cfg.yahoo_client_secret,
-        redirect_uri=cfg.yahoo_redirect_uri,
-    )
-    yahoo = YahooClient(auth, cache, league_id=cfg.yahoo_league_key, team_key=cfg.yahoo_team_key)
+    store = Store(cfg.database_path)
+
+    league: LeagueReader
+    if cfg.league_source == "manual":
+        league = ManualLeague(store, league_key=cfg.yahoo_league_key, faab_budget=cfg.faab_budget)
+    else:
+        auth = YahooAuth(
+            TokenStore(Path(cfg.yahoo_token_path)),
+            client_id=cfg.yahoo_client_id,
+            client_secret=cfg.yahoo_client_secret,
+            redirect_uri=cfg.yahoo_redirect_uri,
+        )
+        league = YahooClient(
+            auth, cache, league_id=cfg.yahoo_league_key, team_key=cfg.yahoo_team_key
+        )
 
     available: dict[str, ProjectionSource] = {
         "espn": EspnProjections(season, cache),
@@ -81,9 +92,9 @@ def build_deps(config: Settings | None = None) -> Deps:
         )
 
     return Deps(
-        yahoo=yahoo,
+        yahoo=league,
         sources=sources,
-        store=Store(cfg.database_path),
+        store=store,
         sleeper=SleeperClient(cache),
         config=cfg,
         actuals=NflverseActuals(season, cache),

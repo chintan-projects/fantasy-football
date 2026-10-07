@@ -53,6 +53,15 @@ SLOT_ELIGIBILITY: dict[Slot, frozenset[Position]] = {
 STARTING_SLOTS: frozenset[Slot] = frozenset(SLOT_ELIGIBILITY)
 
 
+def slots_for(position: Position) -> frozenset[Slot]:
+    """Every starting slot a player at this position may fill, under standard rules.
+
+    For sources that name a position but not the league's eligibility list. Yahoo sends
+    the list itself; a roster typed in from a screenshot does not.
+    """
+    return frozenset(slot for slot, allowed in SLOT_ELIGIBILITY.items() if position in allowed)
+
+
 @dataclass(frozen=True, slots=True)
 class Player:
     id: PlayerId

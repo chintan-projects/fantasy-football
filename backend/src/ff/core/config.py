@@ -47,6 +47,12 @@ class Settings(BaseSettings):
     # app's own settings in the developer portal. Probed 2026-09-13. (BUG-004.)
     yahoo_scope: Literal["", "fspt-r", "fspt-w"] = ""
 
+    #: Where the league comes from. ``yahoo`` reads it from the API. ``manual`` reads what
+    #: the owner entered from screenshots, for as long as Yahoo has not approved the API
+    #: application -- see docs/MANUAL_MODE.md. Projections, math and storage are the same
+    #: either way; only the roster, opponent, free agents and budget change hands.
+    league_source: Literal["yahoo", "manual"] = "yahoo"
+
     # Optional paid source
     fantasypros_api_key: str = ""
 
@@ -85,6 +91,10 @@ class Settings(BaseSettings):
             "FF_YAHOO_LEAGUE_KEY": self.yahoo_league_key,
             "FF_YAHOO_TEAM_KEY": self.yahoo_team_key,
         }
+        if self.league_source == "manual":
+            # Nothing calls the API. The league id is still needed: it is the only part of
+            # the deep link to the Yahoo app that the assisted executor cannot invent.
+            required = {"FF_YAHOO_LEAGUE_KEY": self.yahoo_league_key}
         return sorted(name for name, value in required.items() if not value.strip())
 
     log_level: str = "INFO"

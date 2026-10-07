@@ -27,7 +27,9 @@ from ff.services.week import WeekBundle
 
 def lineup_plan(result: Recommendation, bundle: WeekBundle, week: int) -> dict[str, Any]:
     """The full recommendation payload, returned to Claude and persisted verbatim."""
-    by_id = {str(p.id): p for p in bundle.roster.players}
+    # The opponent too: an opponent's starter with no projection is listed by name in
+    # ``unprojected``, and "4881" tells the owner nothing.
+    by_id = {str(p.id): p for p in (*bundle.roster.players, *bundle.opponent_starters)}
 
     def name(player_id: Any) -> str:
         key = str(player_id)
